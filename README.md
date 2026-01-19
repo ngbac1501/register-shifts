@@ -1,36 +1,216 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hệ Thống Quản Lý Ca Làm Việc Epatta Coffee & Tea
 
-## Getting Started
+Ứng dụng web quản lý ca làm việc hoàn chỉnh cho chuỗi cà phê Epatta Coffee & Tea, được xây dựng với Next.js 14, Firebase và Tailwind CSS.
 
-First, run the development server:
+## ✨ Tính Năng
 
+### 🔐 Phân Quyền Người Dùng
+
+**Admin** - Quản trị viên hệ thống
+- Quản lý toàn bộ chuỗi cửa hàng
+- Thêm/sửa/xóa cửa hàng, quản lý, nhân viên
+- Xem báo cáo tổng hợp toàn hệ thống
+- Cấu hình ca làm việc và chính sách
+
+**Manager** - Quản lý cửa hàng
+- Quản lý ca làm việc của cửa hàng mình phụ trách
+- Duyệt/từ chối yêu cầu đăng ký ca
+- Tạo lịch làm việc tự động/thủ công
+- Xem báo cáo nhân sự cửa hàng
+
+**Employee** - Nhân viên cửa hàng
+- Đăng ký ca làm việc
+- Xem lịch làm việc cá nhân
+- Yêu cầu đổi ca với đồng nghiệp
+- Xem tổng số giờ làm và lương dự kiến
+
+### ⏰ Ca Làm Việc
+
+**Ca chính (Full-time - 8 tiếng):**
+- Ca sáng: 06:30 - 14:30
+- Ca chiều: 14:30 - 22:30
+- Ca đêm: 22:30 - 06:30
+
+**Ca Part-time (linh động < 8 tiếng):**
+- Part-time sáng: 08:00 - 12:00
+- Part-time chiều: 16:00 - 20:00
+
+## 🛠️ Tech Stack
+
+- **Frontend:** Next.js 14+ (App Router), React 19, TypeScript
+- **Styling:** Tailwind CSS 4, Custom Coffee Theme
+- **State Management:** Zustand
+- **Data Fetching:** Custom Firestore Hooks với Real-time Listeners
+- **Forms:** React Hook Form + Zod Validation
+- **Backend:** Firebase (Authentication + Firestore)
+- **Icons:** Lucide React
+- **Date Handling:** date-fns
+
+## 📦 Installation
+
+### Prerequisites
+
+- Node.js 18+ và npm
+- Firebase project với Firestore và Authentication enabled
+
+### Setup
+
+1. **Clone repository**
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <your-repo-url>
+cd my-project
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **Install dependencies**
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. **Configure Firebase**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Tạo file `.env.local` từ template:
+```bash
+cp .env.local.example .env.local
+```
 
-## Learn More
+Cập nhật các biến môi trường trong `.env.local`:
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+```
 
-To learn more about Next.js, take a look at the following resources:
+4. **Deploy Firestore Security Rules**
+```bash
+firebase deploy --only firestore:rules
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+5. **Run development server**
+```bash
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Mở [http://localhost:3000](http://localhost:3000) trong browser.
 
-## Deploy on Vercel
+## 🔥 Firebase Setup
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 1. Tạo Firebase Project
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Truy cập [Firebase Console](https://console.firebase.google.com/)
+2. Tạo project mới
+3. Enable Authentication (Email/Password)
+4. Enable Firestore Database
+
+### 2. Firestore Collections
+
+Hệ thống sử dụng các collections sau:
+
+- `users` - Thông tin người dùng (admin, manager, employee)
+- `stores` - Danh sách cửa hàng
+- `shifts` - Cấu hình ca làm việc
+- `schedules` - Lịch làm việc đã đăng ký
+- `shift_swaps` - Yêu cầu đổi ca
+
+### 3. Seed Initial Data
+
+Tạo tài khoản admin đầu tiên:
+
+```javascript
+// Sử dụng Firebase Console hoặc script
+{
+  email: "admin@epatta.com",
+  password: "123456",
+  displayName: "Admin Epatta",
+  role: "admin"
+}
+```
+
+## 🎨 UI/UX Features
+
+- **Modern Design** - Gradient backgrounds, smooth animations
+- **Coffee Theme** - Màu sắc ấm áp phù hợp với thương hiệu cà phê
+- **Responsive** - Hoạt động tốt trên desktop, tablet, mobile
+- **Real-time Updates** - Dữ liệu cập nhật tức thì với Firestore listeners
+- **Loading States** - Skeleton screens và loading indicators
+- **Empty States** - Thông báo thân thiện khi không có dữ liệu
+
+## 📱 Demo Accounts
+
+Sau khi seed data, bạn có thể đăng nhập với:
+
+- **Admin:** admin@epatta.com / 123456
+- **Manager:** manager1@epatta.com / 123456
+- **Employee:** employee1@epatta.com / 123456
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+
+```bash
+npm run build
+vercel deploy
+```
+
+### Firebase Hosting
+
+```bash
+npm run build
+firebase deploy --only hosting
+```
+
+## 📁 Project Structure
+
+```
+my-project/
+├── src/
+│   ├── app/                    # Next.js App Router
+│   │   ├── admin/             # Admin dashboard
+│   │   ├── manager/           # Manager dashboard
+│   │   ├── employee/          # Employee dashboard
+│   │   └── login/             # Login page
+│   ├── components/            # Shared components
+│   ├── hooks/                 # Custom React hooks
+│   ├── lib/                   # Utilities & Firebase
+│   │   ├── firebase/         # Firebase config & helpers
+│   │   ├── validations/      # Zod schemas
+│   │   └── utils.ts          # Utility functions
+│   ├── store/                # Zustand stores
+│   ├── styles/               # Global styles
+│   └── types/                # TypeScript types
+├── firestore.rules           # Firestore security rules
+└── package.json
+```
+
+## 🔒 Security
+
+- Firebase Security Rules đảm bảo role-based access control
+- Protected routes kiểm tra authentication và role
+- Input validation với Zod schemas
+- Secure password hashing với Firebase Auth
+
+## 🎯 Roadmap
+
+- [ ] Calendar view với drag-and-drop
+- [ ] Auto-scheduling algorithm
+- [ ] Shift trading marketplace
+- [ ] Push notifications
+- [ ] Export reports (PDF/Excel)
+- [ ] Mobile app (React Native)
+- [ ] Multi-language support (i18n)
+- [ ] Dark mode
+- [ ] Analytics dashboard
+
+## 📄 License
+
+MIT License
+
+## 👥 Contributors
+
+Được phát triển bởi Gemini AI Assistant
+
+---
+
+**Epatta Coffee & Tea** - Hệ thống quản lý ca làm việc hiện đại 🚀☕

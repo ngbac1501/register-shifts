@@ -1,0 +1,68 @@
+{
+  "users": [
+    {
+      "userId": "admin1",
+      "email": "admin@epatta.com",
+      "displayName": "Admin",
+      "role": "admin",
+      "createdAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "userId": "manager1",
+      "email": "manager@epatta.com",
+      "displayName": "Manager",
+      "role": "manager",
+      "storeId": "store1",
+      "createdAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "userId": "employee1",
+      "email": "employee@epatta.com",
+      "displayName": "Employee",
+      "role": "employee",
+      "storeId": "store1",
+      "employeeType": "fulltime",
+      "hourlyRate": 25000,
+      "createdAt": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "stores": [
+    {
+      "storeId": "store1",
+      "name": "Epatta Coffee & Tea - CN1",
+      "address": "123 Đường Lê Lợi, Q.1, TP.HCM",
+      "managerId": "manager1",
+      "isActive": true,
+      "createdAt": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "shifts": [
+    {
+      "shiftId": "morning",
+      "name": "Ca sáng",
+      "startTime": "06:30",
+      "endTime": "14:30",
+      "duration": 8,
+      "type": "fulltime",
+      "isActive": true
+    },
+    {
+      "shiftId": "afternoon",
+      "name": "Ca chiều",
+      "startTime": "14:30",
+      "endTime": "22:30",
+      "duration": 8,
+      "type": "fulltime",
+      "isActive": true
+    },
+    {
+      "shiftId": "night",
+      "name": "Ca đêm",
+      "startTime": "22:30",
+      "endTime": "06:30",
+      "duration": 8,
+      "type": "fulltime",
+      "isActive": true
+    }
+  ]
+}
