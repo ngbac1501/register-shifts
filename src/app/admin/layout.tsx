@@ -3,7 +3,7 @@
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { LayoutDashboard, Store, Users, Clock, LogOut, Menu, X, Settings } from 'lucide-react';
+import { LayoutDashboard, Store, Users, Clock, LogOut, Menu, X, Settings, ClipboardCheck } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -47,8 +47,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const manageItems = [
         { href: '/admin/manage/schedule', label: 'Lịch làm việc', icon: Clock },
         { href: '/admin/manage/employees', label: 'Nhân viên', icon: Users },
-        { href: '/admin/manage/approvals', label: 'Duyệt yêu cầu', icon: Settings },
+        { href: '/admin/manage/approvals', label: 'Duyệt yêu cầu', icon: ClipboardCheck },
         { href: '/admin/manage/payroll', label: 'Báo cáo lương', icon: LayoutDashboard },
+        { href: '/admin/settings', label: 'Cài đặt', icon: Settings },
     ];
 
     return (

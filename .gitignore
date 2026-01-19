@@ -42,3 +42,6 @@ next-env.d.ts
 
 # firebase credentials
 firebase-service-account.json
+
+# firebase cache
+.firebase
