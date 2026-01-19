@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -27,48 +27,11 @@ export default function ShiftRegisterForm() {
   const {
     register: formRegister,
     handleSubmit,
-    watch,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<FormData>({ resolver: zodResolver(schema) });
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
-  const [isDateInvalid, setIsDateInvalid] = useState(false);
-
-  const selectedDate = watch("date");
-
-  useEffect(() => {
-    const checkDate = async () => {
-      if (!selectedDate || !user) return;
-
-      setIsDateInvalid(false);
-      setError("");
-
-      try {
-        const { getDocs, query, where } = await import("firebase/firestore");
-        const q = query(
-          collection(db, "schedules"),
-          where("employeeId", "==", user.uid),
-          where("date", "==", selectedDate),
-          where("status", "==", "completed")
-        );
-        const querySnapshot = await getDocs(q);
-
-        if (!querySnapshot.empty) {
-          setIsDateInvalid(true);
-          setError("Bạn đã có ca làm việc hoàn thành trong ngày này.");
-        }
-      } catch (err) {
-        console.error("Error validating date:", err);
-      }
-    };
-
-    const timer = setTimeout(() => {
-      checkDate();
-    }, 500); // Debounce
-
-    return () => clearTimeout(timer);
-  }, [selectedDate, user]);
 
   const onSubmit = async (data: FormData) => {
     setError("");
@@ -125,7 +88,7 @@ export default function ShiftRegisterForm() {
         </select>
         {errors.shiftId && <p className="text-red-500 text-sm">{errors.shiftId.message}</p>}
       </div>
-      <button type="submit" className="btn btn-primary w-full" disabled={isSubmitting || isDateInvalid}>
+      <button type="submit" className="btn btn-primary w-full" disabled={isSubmitting}>
         Đăng ký ca
       </button>
       {success && <p className="text-green-600 text-sm">{success}</p>}
