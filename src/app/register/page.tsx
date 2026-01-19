@@ -3,14 +3,16 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import toast from 'react-hot-toast';
 import { signUp } from '@/lib/firebase/auth';
 import { useCollection } from '@/hooks/use-firestore';
 import { Store } from '@/types';
 import { where } from 'firebase/firestore';
-import { Coffee, User, Mail, Lock, ArrowRight, Loader2, Store as StoreIcon } from 'lucide-react';
+import { User, Mail, Lock, ArrowRight, Loader2, Store as StoreIcon } from 'lucide-react';
 
 // Schema validation
 const signUpSchema = z.object({
@@ -54,21 +56,27 @@ export default function RegisterPage() {
         storeId: data.storeId
       });
 
-      // Redirect to employee dashboard or wait for approval page?
-      // For now, redirect to employee login or dashboard. 
-      // Since email verification might be needed or approval, maybe login is safer, 
-      // but usually after signup we sign them in automatically.
-      // Let's redirect to /employee
-      router.push('/employee');
+      // Show success toast
+      toast.success('Đăng ký thành công! Đang chuyển hướng...');
+
+      // Redirect to employee dashboard with delay to show toast
+      setTimeout(() => {
+        window.location.href = '/employee';
+      }, 500);
 
     } catch (err: any) {
       console.error('Registration error:', err);
-      // Handle simplistic Firebase error code mapping if needed, or just show message
+      let errorMessage = 'Đăng ký thất bại. Vui lòng thử lại.';
+
+      // Handle simplistic Firebase error code mapping
       if (err.message.includes('email-already-in-use')) {
-        setError('Email này đã được sử dụng');
-      } else {
-        setError(err.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+        errorMessage = 'Email này đã được sử dụng';
+      } else if (err.message) {
+        errorMessage = err.message;
       }
+
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -84,8 +92,15 @@ export default function RegisterPage() {
       <div className="w-full max-w-md relative z-10">
         {/* Logo & Title */}
         <div className="text-center mb-8 animate-fadeIn">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-amber-600 to-orange-700 rounded-3xl mb-6 shadow-2xl transform rotate-3 hover:rotate-0 transition-all duration-300">
-            <Coffee className="w-10 h-10 text-white" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white dark:bg-gray-800 rounded-3xl mb-6 shadow-2xl transform hover:scale-105 transition-all duration-300 overflow-hidden">
+            <Image
+              src="/logoEpatta.png"
+              alt="Epatta Logo"
+              width={80}
+              height={80}
+              className="w-full h-full object-contain p-2"
+              priority
+            />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
             Đăng ký tài khoản

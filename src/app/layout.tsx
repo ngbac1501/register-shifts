@@ -5,11 +5,12 @@ import "../styles/globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Epatta Coffee & Tea - Đăng nhập",
-  description: "Quản lý ca làm việc chuỗi Epatta Coffee & Tea",
-};
+  title: "Epatta Coffee & Tea - Quản lý ca làm việc",
+  description: "Hệ thống quản lý ca làm việc chuỗi Epatta Coffee & Tea",
+}
 
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { ToastProvider } from "@/components/providers/toast-provider";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           {children}
         </ThemeProvider>
+        <ToastProvider />
       </body>
     </html>
   );

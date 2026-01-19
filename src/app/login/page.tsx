@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import toast from 'react-hot-toast';
 import { signIn } from '@/lib/firebase/auth';
 import { loginSchema, type LoginFormData } from '@/lib/validations/schemas';
-import { Coffee } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,22 +30,29 @@ export default function LoginPage() {
 
       const user = await signIn(data.email, data.password);
 
-      // Redirect based on role
-      switch (user.role) {
-        case 'admin':
-          router.push('/admin');
-          break;
-        case 'manager':
-          router.push('/manager');
-          break;
-        case 'employee':
-          router.push('/employee');
-          break;
-        default:
-          setError('Vai trò không hợp lệ');
+      // Show success toast
+      toast.success('Đăng nhập thành công!');
+
+      // Use window.location.href to force full page reload and avoid race condition
+      // This ensures auth state is properly set before navigation
+      const redirectPath = user.role === 'admin' ? '/admin'
+        : user.role === 'manager' ? '/manager'
+          : user.role === 'employee' ? '/employee'
+            : null;
+
+      if (redirectPath) {
+        // Small delay to show toast before redirect
+        setTimeout(() => {
+          window.location.href = redirectPath;
+        }, 500);
+      } else {
+        setError('Vai trò không hợp lệ');
+        toast.error('Vai trò không hợp lệ');
       }
     } catch (err: any) {
-      setError(err.message || 'Đăng nhập thất bại');
+      const errorMessage = err.message || 'Đăng nhập thất bại';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -60,8 +68,15 @@ export default function LoginPage() {
       <div className="w-full max-w-md relative z-10">
         {/* Logo & Title */}
         <div className="text-center mb-8 animate-fadeIn">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-amber-600 to-orange-700 rounded-3xl mb-6 shadow-2xl transform rotate-3 hover:rotate-0 transition-all duration-300">
-            <Coffee className="w-10 h-10 text-white" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white dark:bg-gray-800 rounded-3xl mb-6 shadow-2xl transform hover:scale-105 transition-all duration-300 overflow-hidden">
+            <Image
+              src="/logoEpatta.png"
+              alt="Epatta Logo"
+              width={80}
+              height={80}
+              className="w-full h-full object-contain p-2"
+              priority
+            />
           </div>
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
             Epatta

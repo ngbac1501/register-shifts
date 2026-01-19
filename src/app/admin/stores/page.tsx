@@ -5,8 +5,10 @@ import { useCollection } from '@/hooks/use-firestore';
 import { Store, User } from '@/types';
 import { collection, addDoc, updateDoc, deleteDoc, doc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import toast from 'react-hot-toast';
 import { Store as StoreIcon, Plus, Edit, Trash2, Search } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
+import { DetailedAddressInput } from '@/components/DetailedAddressInput';
 
 export default function AdminStoresPage() {
     const { data: stores, loading } = useCollection<Store>('stores');
@@ -55,17 +57,19 @@ export default function AdminStoresPage() {
                 await updateDoc(doc(db, 'stores', editingStore.id), {
                     ...formData,
                 });
+                toast.success('Cập nhật cửa hàng thành công!');
             } else {
                 await addDoc(collection(db, 'stores'), {
                     ...formData,
                     isActive: true,
                     createdAt: Timestamp.now(),
                 });
+                toast.success('Thêm cửa hàng mới thành công!');
             }
             handleCloseModal();
         } catch (error) {
             console.error('Error saving store:', error);
-            alert('Có lỗi xảy ra khi lưu cửa hàng');
+            toast.error('Có lỗi xảy ra khi lưu cửa hàng');
         }
     };
 
@@ -83,9 +87,10 @@ export default function AdminStoresPage() {
         if (!confirm('Bạn có chắc muốn xóa cửa hàng này?')) return;
         try {
             await deleteDoc(doc(db, 'stores', storeId));
+            toast.success('Đã xóa cửa hàng');
         } catch (error) {
             console.error('Error deleting store:', error);
-            alert('Có lỗi xảy ra khi xóa cửa hàng');
+            toast.error('Có lỗi xảy ra khi xóa cửa hàng');
         }
     };
 
@@ -241,13 +246,10 @@ export default function AdminStoresPage() {
                                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                                         Địa chỉ <span className="text-red-500">*</span>
                                     </label>
-                                    <input
-                                        type="text"
-                                        required
+                                    <DetailedAddressInput
                                         value={formData.address}
-                                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none dark:text-white placeholder-gray-400"
-                                        placeholder="123 Nguyễn Huệ, Quận 1, TP.HCM"
+                                        onChange={(value) => setFormData({ ...formData, address: value })}
+                                        required
                                     />
                                 </div>
 

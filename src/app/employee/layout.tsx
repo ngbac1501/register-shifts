@@ -4,8 +4,9 @@ import { useAuth } from '@/hooks/use-auth';
 import { useDocument } from '@/hooks/use-firestore';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { LayoutDashboard, Calendar, PlusCircle, History, LogOut, Store, FileText, Settings, Menu, X, Coffee } from 'lucide-react';
+import { LayoutDashboard, Calendar, PlusCircle, History, LogOut, Store, FileText, Settings, Menu, X } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Store as StoreType } from '@/types';
 import { useState } from 'react';
 
@@ -47,7 +48,9 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
             {/* Mobile Header */}
             <div className="lg:hidden flex items-center justify-between p-4 bg-gradient-to-r from-purple-700 to-indigo-800 text-white shadow-md fixed top-0 left-0 right-0 z-20">
                 <div className="flex items-center gap-2">
-                    <Coffee className="w-6 h-6" />
+                    <div className="bg-white w-8 h-8 rounded-lg flex items-center justify-center shadow-lg overflow-hidden">
+                        <Image src="/logoEpatta.png" alt="Epatta" width={32} height={32} className="w-full h-full object-contain p-1" />
+                    </div>
                     <span className="font-bold text-lg">Epatta Employee</span>
                 </div>
                 <button onClick={toggleSidebar} className="p-2 hover:bg-white/10 rounded-lg transition-colors">

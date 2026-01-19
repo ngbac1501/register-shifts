@@ -8,6 +8,7 @@ import { useCollection } from '@/hooks/use-firestore';
 import { Schedule, Shift, User } from '@/types';
 import { where, updateDoc, doc, Timestamp, deleteField, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import toast from 'react-hot-toast';
 import { Clock, Edit, AlertTriangle, Filter, Trash2, Search, Calendar, ChevronDown, Check, X, Loader2, CheckCircle2 } from 'lucide-react';
 import { formatDate, getStatusLabel, calculateDuration } from '@/lib/utils';
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, startOfMonth, subMonths, startOfYear, subYears, isWithinInterval, startOfDay, endOfDay, isSameDay } from 'date-fns';
@@ -160,9 +161,10 @@ export default function AdminApprovalsPage() {
                 approvedBy: user?.id,
                 updatedAt: Timestamp.now(),
             });
+            toast.success('Đã duyệt ca làm việc thành công!');
         } catch (error) {
             console.error('Error approving schedule:', error);
-            alert('Có lỗi xảy ra khi duyệt yêu cầu');
+            toast.error('Có lỗi xảy ra khi duyệt yêu cầu');
         }
     };
 
@@ -172,9 +174,10 @@ export default function AdminApprovalsPage() {
                 status: 'completed',
                 updatedAt: Timestamp.now(),
             });
+            toast.success('Đã đánh dấu hoàn thành!');
         } catch (error) {
             console.error('Error completing schedule:', error);
-            alert('Có lỗi xảy ra khi hoàn thành ca làm việc');
+            toast.error('Có lỗi xảy ra khi hoàn thành ca làm việc');
         }
     };
 
@@ -199,9 +202,10 @@ export default function AdminApprovalsPage() {
             });
             setIsRejectModalOpen(false);
             setRejectingSchedule(null);
+            toast.success('Đã từ chối yêu cầu');
         } catch (error) {
             console.error('Error rejecting schedule:', error);
-            alert('Có lỗi xảy ra khi từ chối yêu cầu');
+            toast.error('Có lỗi xảy ra khi từ chối yêu cầu');
         }
     };
 
@@ -212,9 +216,10 @@ export default function AdminApprovalsPage() {
             await deleteDoc(doc(db, 'schedules', deletingSchedule.id));
             setIsDeleteModalOpen(false);
             setDeletingSchedule(null);
+            toast.success('Đã xóa ca làm việc');
         } catch (error) {
             console.error('Error deleting schedule:', error);
-            alert('Có lỗi xảy ra khi xoá yêu cầu');
+            toast.error('Có lỗi xảy ra khi xoá yêu cầu');
         }
     };
 
@@ -283,6 +288,9 @@ export default function AdminApprovalsPage() {
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Quản lý ca làm việc</h1>
                 <p className="text-gray-600 dark:text-gray-400">Duyệt, chỉnh sửa và quản lý ca làm việc của nhân viên</p>
             </div>
+
+            {/* Store Selector */}
+            <StoreSelector />
 
             {/* Stats Cards / Filters */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">

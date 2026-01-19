@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { LayoutDashboard, Store, Users, Clock, LogOut, Menu, X, Settings } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const { user, loading } = useAuth();
@@ -55,8 +56,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {/* Mobile Header */}
             <header className="lg:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between sticky top-0 z-30">
                 <div className="flex items-center gap-2">
-                    <div className="bg-gradient-to-br from-orange-500 to-amber-600 w-8 h-8 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/30">
-                        <span className="text-white font-bold text-xl">E</span>
+                    <div className="bg-white dark:bg-gray-800 w-8 h-8 rounded-lg flex items-center justify-center shadow-lg overflow-hidden">
+                        <Image src="/logoEpatta.png" alt="Epatta" width={32} height={32} className="w-full h-full object-contain p-1" />
                     </div>
                     <span className="font-bold text-gray-900 dark:text-white text-lg">Admin</span>
                 </div>
@@ -85,8 +86,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         {/* Sidebar Header */}
                         <div className="p-6 border-b border-gray-100 dark:border-gray-700 hidden lg:block">
                             <div className="flex items-center gap-3 mb-6">
-                                <div className="bg-gradient-to-br from-orange-500 to-amber-600 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30">
-                                    <span className="text-white font-bold text-2xl">E</span>
+                                <div className="bg-white dark:bg-gray-800 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
+                                    <Image src="/logoEpatta.png" alt="Epatta" width={40} height={40} className="w-full h-full object-contain p-1" />
                                 </div>
                                 <div>
                                     <h1 className="text-xl font-bold text-gray-900 dark:text-white">Epatta</h1>
