@@ -106,24 +106,35 @@ export default function EmployeeDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <div
-            key={index}
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-200"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500 dark:text-gray-400 text-sm mb-1 font-medium">{stat.title}</p>
-                <p className={`${stat.isText ? 'text-xl' : 'text-3xl'} font-bold text-gray-900 dark:text-white`}>
-                  {stat.value}
-                </p>
-              </div>
-              <div className={`p-3 rounded-xl ${stat.bgLight} dark:bg-opacity-10`}>
-                <stat.icon className={`w-6 h-6 ${stat.text} dark:text-${stat.color}-400`} />
+        {stats.map((stat, index) => {
+          const Content = (
+            <div
+              className={`bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-200 h-full ${stat.title === 'Lương dự kiến' ? 'cursor-pointer hover:border-purple-300 dark:hover:border-purple-700' : ''}`}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm mb-1 font-medium">{stat.title}</p>
+                  <p className={`${stat.isText ? 'text-xl' : 'text-3xl'} font-bold text-gray-900 dark:text-white`}>
+                    {stat.value}
+                  </p>
+                </div>
+                <div className={`p-3 rounded-xl ${stat.bgLight} dark:bg-opacity-10`}>
+                  <stat.icon className={`w-6 h-6 ${stat.text} dark:text-${stat.color}-400`} />
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+
+          if (stat.title === 'Lương dự kiến') {
+            return (
+              <a key={index} href="/employee/history">
+                {Content}
+              </a>
+            );
+          }
+
+          return <div key={index}>{Content}</div>;
+        })}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

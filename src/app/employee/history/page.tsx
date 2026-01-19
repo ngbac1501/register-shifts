@@ -153,25 +153,36 @@ export default function EmployeeHistoryPage() {
                     { label: 'Hoàn thành', value: stats.completed, icon: Clock, color: 'green', bg: 'bg-green-50', text: 'text-green-600' },
                     { label: 'Tổng giờ', value: stats.totalHours + 'h', icon: TrendingUp, color: 'purple', bg: 'bg-purple-50', text: 'text-purple-600' },
                     { label: 'Lương dự kiến', value: formatCurrency(stats.estimatedSalary), icon: DollarSign, color: 'orange', bg: 'bg-orange-50', text: 'text-orange-600', isLarge: true },
-                ].map((stat, index) => (
-                    <div key={index} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{stat.label}</p>
-                                <p className={`font-bold text-gray-900 dark:text-white ${stat.isLarge ? 'text-xl' : 'text-2xl'}`}>
-                                    {stat.value}
-                                </p>
-                            </div>
-                            <div className={`p-3 rounded-xl ${stat.bg} dark:bg-opacity-10`}>
-                                <stat.icon className={`w-6 h-6 ${stat.text} dark:text-${stat.color}-400`} />
+                ].map((stat, index) => {
+                    const Content = (
+                        <div className={`bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 h-full ${stat.label === 'Lương dự kiến' ? 'cursor-pointer hover:border-orange-300 transition-colors' : ''}`}>
+                            <div className="flex items-start justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{stat.label}</p>
+                                    <p className={`font-bold text-gray-900 dark:text-white ${stat.isLarge ? 'text-xl' : 'text-2xl'}`}>
+                                        {stat.value}
+                                    </p>
+                                </div>
+                                <div className={`p-3 rounded-xl ${stat.bg} dark:bg-opacity-10`}>
+                                    <stat.icon className={`w-6 h-6 ${stat.text} dark:text-${stat.color}-400`} />
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+
+                    if (stat.label === 'Lương dự kiến') {
+                        return (
+                            <a key={index} href="#payroll-table">
+                                {Content}
+                            </a>
+                        );
+                    }
+                    return <div key={index}>{Content}</div>;
+                })}
             </div>
 
             {/* Detailed Breakdown */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+            <div id="payroll-table" className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
                 <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">Chi tiết ca làm việc</h2>
                 </div>
@@ -192,6 +203,7 @@ export default function EmployeeHistoryPage() {
                                     <th className="text-left py-4 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Ca làm việc</th>
                                     <th className="text-left py-4 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Giờ</th>
                                     <th className="text-left py-4 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Thời lượng</th>
+                                    <th className="text-right py-4 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Phụ cấp ca đêm</th>
                                     <th className="text-center py-4 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Trạng thái</th>
                                     <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">Lương</th>
                                 </tr>
@@ -206,8 +218,9 @@ export default function EmployeeHistoryPage() {
                                     .map((schedule) => {
                                         const shift = getShiftInfo(schedule);
                                         const hourlyRate = user?.hourlyRate || 0;
+                                        const nightAllowance = shift.nightHours * hourlyRate * 0.3;
                                         const salary = schedule.status === 'completed'
-                                            ? (shift.duration * hourlyRate) + (shift.nightHours * hourlyRate * 0.3)
+                                            ? (shift.duration * hourlyRate) + nightAllowance
                                             : 0;
 
                                         return (
@@ -225,6 +238,9 @@ export default function EmployeeHistoryPage() {
                                                 <td className="py-4 px-4 text-gray-900 dark:text-white font-medium">{shift.name}</td>
                                                 <td className="py-4 px-4 text-gray-600 dark:text-gray-300">{shift.time}</td>
                                                 <td className="py-4 px-4 text-gray-600 dark:text-gray-300">{shift.duration}h</td>
+                                                <td className="py-4 px-4 text-right text-gray-600 dark:text-gray-300">
+                                                    {nightAllowance > 0 && schedule.status === 'completed' ? formatCurrency(nightAllowance) : '-'}
+                                                </td>
                                                 <td className="py-4 px-4 text-center">
                                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${schedule.status === 'approved' ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800' :
                                                         schedule.status === 'pending' ? 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800' :

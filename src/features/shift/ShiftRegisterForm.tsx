@@ -41,6 +41,21 @@ export default function ShiftRegisterForm() {
       return;
     }
     try {
+      // Check for existing completed shift on the same date
+      const { getDocs, query, where } = await import("firebase/firestore");
+      const q = query(
+        collection(db, "schedules"),
+        where("employeeId", "==", user.uid),
+        where("date", "==", data.date),
+        where("status", "==", "completed")
+      );
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        setError("Bạn đã có ca làm việc hoàn thành trong ngày này.");
+        return;
+      }
+
       await addDoc(collection(db, "schedules"), {
         employeeId: user.uid,
         shiftId: data.shiftId,

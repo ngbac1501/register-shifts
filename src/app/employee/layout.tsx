@@ -138,7 +138,7 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
                         className="flex items-center px-4 py-3 hover:bg-white/10 rounded-lg transition-all mx-2 group"
                     >
                         <History className="w-5 h-5 mr-3 group-hover:text-purple-200 transition-colors" />
-                        Lịch sử
+                        Lịch sử & Lương
                     </Link>
                     <Link
                         href="/employee/settings"
