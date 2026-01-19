@@ -3,19 +3,29 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useCollection } from '@/hooks/use-firestore';
-import { Schedule, Shift } from '@/types';
-import { where } from 'firebase/firestore';
+import { Schedule, Shift, Store } from '@/types';
+import { where, deleteDoc, doc } from 'firebase/firestore';
 import { ChevronLeft, ChevronRight, Calendar, Clock, Trash2, Edit } from 'lucide-react';
 import { getStatusColor, getStatusLabel } from '@/lib/utils';
 import { startOfWeek, endOfWeek, addWeeks, subWeeks, eachDayOfInterval, format, isSameDay } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { deleteDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from 'react-hot-toast';
+import { DeleteConfirmationModal } from '@/components/shared/DeleteConfirmationModal';
+import { EditScheduleModal } from '@/components/employee/EditScheduleModal';
+import { useDocument } from '@/hooks/use-firestore';
 
 export default function EmployeeSchedulePage() {
     const { user } = useAuth();
     const [currentWeek, setCurrentWeek] = useState(new Date());
+
+    // Modal states
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [scheduleToDelete, setScheduleToDelete] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [scheduleToEdit, setScheduleToEdit] = useState<Schedule | null>(null);
 
     const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 });
     const weekEnd = endOfWeek(currentWeek, { weekStartsOn: 1 });
@@ -25,9 +35,16 @@ export default function EmployeeSchedulePage() {
         where('employeeId', '==', user?.id || ''),
     ]);
 
+    // Use query for all store schedules to check conflicts in Edit Modal
+    const { data: allSchedules } = useCollection<Schedule>('schedules', [
+        where('storeId', '==', user?.storeId || ''),
+    ]);
+
     const { data: shifts } = useCollection<Shift>('shifts', [
         where('isActive', '==', true),
     ]);
+
+    const { data: store } = useDocument<Store>('stores', user?.storeId || '');
 
     const getSchedulesForDay = (day: Date) => {
         return schedules?.filter(schedule => {
@@ -64,25 +81,33 @@ export default function EmployeeSchedulePage() {
         setCurrentWeek(new Date());
     };
 
-    const handleDelete = async (scheduleId: string) => {
-        if (confirm('Bạn có chắc chắn muốn xóa ca đăng ký này không?')) {
-            try {
-                await deleteDoc(doc(db, 'schedules', scheduleId));
-                toast.success('Đã xóa ca đăng ký thành công');
-            } catch (error) {
-                console.error("Error deleting schedule:", error);
-                toast.error('Có lỗi xảy ra khi xóa ca');
-            }
+    // Open Delete Modal
+    const confirmDelete = (scheduleId: string) => {
+        setScheduleToDelete(scheduleId);
+        setDeleteModalOpen(true);
+    };
+
+    // Execute Delete
+    const handleDelete = async () => {
+        if (!scheduleToDelete) return;
+        setIsDeleting(true);
+        try {
+            await deleteDoc(doc(db, 'schedules', scheduleToDelete));
+            toast.success('Đã xóa ca đăng ký thành công');
+            setDeleteModalOpen(false);
+        } catch (error) {
+            console.error("Error deleting schedule:", error);
+            toast.error('Có lỗi xảy ra khi xóa ca');
+        } finally {
+            setIsDeleting(false);
+            setScheduleToDelete(null);
         }
     };
 
-    // Placeholder navigation or modal for Edit - for now simplest is to notify user to delete and re-register or just simple delete
+    // Open Edit Modal
     const handleEdit = (schedule: Schedule) => {
-        // Logic to open edit modal would go here. For now, delete and re-register is safer recommendation without full Edit UI.
-        // Or we can just redirect to register page with params? simpler to just keep Delete active.
-        // Let's implement Delete first as requested "sửa xoá". 
-        // For "Sửa", if it's pending, maybe just show a toast "Vui lòng xóa và đăng ký lại để sửa".
-        toast('Tính năng sửa nhanh đang phát triển. Vui lòng xóa và đăng ký lại.', { icon: 'ℹ️' });
+        setScheduleToEdit(schedule);
+        setEditModalOpen(true);
     };
 
     const getStatusBgColor = (status: string) => {
@@ -222,7 +247,7 @@ export default function EmployeeSchedulePage() {
                                                                 <button
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
-                                                                        handleDelete(schedule.id);
+                                                                        confirmDelete(schedule.id);
                                                                     }}
                                                                     className="p-1 hover:bg-red-200 text-red-600 rounded-md"
                                                                     title="Xóa"
@@ -242,6 +267,26 @@ export default function EmployeeSchedulePage() {
                     })}
                 </div>
             </div>
+
+            <DeleteConfirmationModal
+                isOpen={deleteModalOpen}
+                onClose={() => setDeleteModalOpen(false)}
+                onConfirm={handleDelete}
+                isDeleting={isDeleting}
+                title="Hủy đăng ký ca làm"
+                message="Bạn có chắc chắn muốn hủy ca làm việc này không? Hành động này không thể hoàn tác."
+            />
+
+            <EditScheduleModal
+                isOpen={editModalOpen}
+                onClose={() => setEditModalOpen(false)}
+                schedule={scheduleToEdit}
+                shifts={shifts}
+                userStoreId={user?.storeId}
+                allSchedules={allSchedules}
+                store={store || undefined}
+                userId={user?.id || ''}
+            />
         </div>
     );
 }
