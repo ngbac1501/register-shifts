@@ -210,6 +210,7 @@ export default function EmployeeHistoryPage() {
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                                 {monthSchedules
+                                    .filter(s => s.status === 'completed')
                                     .sort((a, b) => {
                                         const dateA = a.date instanceof Date ? a.date : a.date.toDate();
                                         const dateB = b.date instanceof Date ? b.date : b.date.toDate();
