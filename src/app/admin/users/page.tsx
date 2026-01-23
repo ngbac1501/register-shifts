@@ -127,12 +127,25 @@ export default function AdminUsersPage() {
     const handleDelete = async (userId: string) => {
         if (!confirm('Bạn có chắc muốn xóa người dùng này?')) return;
         try {
+            // 1. Delete from Firebase Auth (via API)
+            const response = await fetch('/api/admin/remove-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ uid: userId }),
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || 'Failed to delete auth user');
+            }
+
+            // 2. Delete from Firestore
             await deleteDoc(doc(db, 'users', userId));
-            // Note: This doesn't delete the Firebase Auth user, only Firestore document
-            toast.success('Đã xóa người dùng khỏi Firestore');
-        } catch (error) {
+
+            toast.success('Đã xóa người dùng khỏi hệ thống');
+        } catch (error: any) {
             console.error('Error deleting user:', error);
-            toast.error('Có lỗi xảy ra khi xóa người dùng');
+            toast.error('Có lỗi xảy ra khi xóa người dùng: ' + error.message);
         }
     };
 
