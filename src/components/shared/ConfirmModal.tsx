@@ -10,6 +10,7 @@ interface ConfirmModalProps {
     confirmText?: string;
     cancelText?: string;
     isLoading?: boolean;
+    showCancel?: boolean;
 }
 
 export default function ConfirmModal({
@@ -21,7 +22,8 @@ export default function ConfirmModal({
     type = 'danger',
     confirmText = 'Xác nhận',
     cancelText = 'Hủy bỏ',
-    isLoading = false
+    isLoading = false,
+    showCancel = true
 }: ConfirmModalProps) {
     if (!isOpen) return null;
 
@@ -79,17 +81,19 @@ export default function ConfirmModal({
                     </p>
 
                     <div className="flex gap-3">
-                        <button
-                            disabled={isLoading}
-                            onClick={onClose}
-                            className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors disabled:opacity-50"
-                        >
-                            {cancelText}
-                        </button>
+                        {showCancel && (
+                            <button
+                                disabled={isLoading}
+                                onClick={onClose}
+                                className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors disabled:opacity-50"
+                            >
+                                {cancelText}
+                            </button>
+                        )}
                         <button
                             disabled={isLoading}
                             onClick={onConfirm}
-                            className={`flex-1 px-4 py-2.5 text-white rounded-xl font-medium shadow-md transition-all transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${colors.button}`}
+                            className={`${showCancel ? 'flex-1' : 'w-full'} px-4 py-2.5 text-white rounded-xl font-medium shadow-md transition-all transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${colors.button}`}
                         >
                             {isLoading ? (
                                 <>

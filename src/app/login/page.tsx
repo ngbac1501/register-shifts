@@ -10,10 +10,22 @@ import toast from 'react-hot-toast';
 import { signIn } from '@/lib/firebase/auth';
 import { loginSchema, type LoginFormData } from '@/lib/validations/schemas';
 
+import ConfirmModal from '@/components/shared/ConfirmModal';
+
 export default function LoginPage() {
   const router = useRouter();
+  // Keep localized error for generic errors if needed, but mainly use modal
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorModal, setErrorModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    title: '',
+    message: ''
+  });
 
   const {
     register,
@@ -22,6 +34,27 @@ export default function LoginPage() {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
+
+  const getErrorMessage = (errorCode: string) => {
+    switch (errorCode) {
+      case 'auth/invalid-email':
+        return 'Địa chỉ email không hợp lệ. Vui lòng kiểm tra lại.';
+      case 'auth/user-disabled':
+        return 'Tài khoản này đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.';
+      case 'auth/user-not-found':
+        return 'Email chưa được đăng ký trong hệ thống.';
+      case 'auth/wrong-password':
+        return 'Mật khẩu không chính xác. Vui lòng thử lại.';
+      case 'auth/invalid-credential':
+        return 'Thông tin đăng nhập không chính xác.';
+      case 'auth/too-many-requests':
+        return 'Quá nhiều lần đăng nhập thất bại. Vui lòng thử lại sau vài phút.';
+      case 'auth/network-request-failed':
+        return 'Lỗi kết nối mạng. Vui lòng kiểm tra đường truyền.';
+      default:
+        return 'Đăng nhập thất bại. Vui lòng thử lại.';
+    }
+  };
 
   const onSubmit = async (data: LoginFormData) => {
     try {
@@ -34,25 +67,38 @@ export default function LoginPage() {
       toast.success('Đăng nhập thành công!');
 
       // Use window.location.href to force full page reload and avoid race condition
-      // This ensures auth state is properly set before navigation
       const redirectPath = user.role === 'admin' ? '/admin'
         : user.role === 'manager' ? '/manager'
           : user.role === 'employee' ? '/employee'
             : null;
 
       if (redirectPath) {
-        // Small delay to show toast before redirect
         setTimeout(() => {
           window.location.href = redirectPath;
         }, 500);
       } else {
-        setError('Vai trò không hợp lệ');
-        toast.error('Vai trò không hợp lệ');
+        const msg = 'Vai trò không hợp lệ';
+        setErrorModal({
+          isOpen: true,
+          title: 'Lỗi Đăng Nhập',
+          message: msg
+        });
+        toast.error(msg);
       }
     } catch (err: any) {
-      const errorMessage = err.message || 'Đăng nhập thất bại';
-      setError(errorMessage);
-      toast.error(errorMessage);
+      console.error('Login error:', err);
+      const errorMessage = getErrorMessage(err.code || '');
+
+      // Use Modal for the error
+      setErrorModal({
+        isOpen: true,
+        title: 'Đăng Nhập Thất Bại',
+        message: errorMessage
+      });
+      // Also set generic error state just in case, or clear it
+      setError('');
+      // Optional: keep toast as secondary or remove it. User asked for Modal.
+      // toast.error(errorMessage); 
     } finally {
       setLoading(false);
     }
@@ -64,6 +110,17 @@ export default function LoginPage() {
         <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-amber-500/20 blur-[100px] animate-pulse"></div>
         <div className="absolute top-[20%] -right-[10%] w-[40%] h-[40%] rounded-full bg-orange-500/20 blur-[100px] animate-pulse delay-1000"></div>
       </div>
+
+      <ConfirmModal
+        isOpen={errorModal.isOpen}
+        onClose={() => setErrorModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={() => setErrorModal(prev => ({ ...prev, isOpen: false }))}
+        title={errorModal.title}
+        message={errorModal.message}
+        type="danger"
+        confirmText="Đóng"
+        showCancel={false}
+      />
 
       <div className="w-full max-w-md relative z-10">
         {/* Logo & Title */}
@@ -88,6 +145,7 @@ export default function LoginPage() {
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8 animate-fadeIn border border-white/20 dark:border-gray-700" style={{ animationDelay: '0.1s' }}>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">Chào mừng trở lại</h2>
 
+          {/* Fallback inline error if needed, but mainly using Modal now */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800/50 rounded-xl flex items-center gap-3 text-red-700 dark:text-red-200 text-sm animate-shake">
               <div className="w-2 h-2 rounded-full bg-red-500"></div>
