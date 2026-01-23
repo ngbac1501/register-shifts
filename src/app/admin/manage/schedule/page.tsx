@@ -275,11 +275,17 @@ export default function AdminSchedulePage() {
                                             <div
                                                 key={schedule.id}
                                                 onClick={() => handleEditClick(schedule)}
-                                                className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2 shadow-sm hover:shadow-md transition-all cursor-pointer relative group/card hover:border-green-400 dark:hover:border-green-600"
+                                                className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2 shadow-sm hover:shadow-md transition-all cursor-pointer relative group/card hover:border-green-400 dark:hover:border-green-600 ${schedule.status === 'completed' ? 'opacity-60' : ''}`}
                                             >
                                                 <div className={`absolute left-0 top-0 bottom-0 w-0.5 rounded-l-lg ${category.id === 'morning' ? 'bg-orange-400' :
                                                     category.id === 'afternoon' ? 'bg-blue-400' : 'bg-purple-400'
                                                     }`}></div>
+
+                                                {schedule.status === 'completed' && (
+                                                    <div className="absolute -top-1 -left-1 bg-green-500 text-white rounded-full p-0.5 z-10">
+                                                        <CheckCircle className="w-3 h-3" />
+                                                    </div>
+                                                )}
 
                                                 <div className="absolute -top-1 -right-1 flex flex-col gap-1 opacity-0 group-hover/card:opacity-100 transition-opacity z-20">
                                                     <button
@@ -386,9 +392,15 @@ export default function AdminSchedulePage() {
                                                 <div
                                                     key={schedule.id}
                                                     onClick={() => handleEditClick(schedule)}
-                                                    className="relative flex items-center bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-3 shadow-sm active:scale-[0.99] transition-transform"
+                                                    className={`relative flex items-center bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-3 shadow-sm active:scale-[0.99] transition-transform ${schedule.status === 'completed' ? 'opacity-60' : ''}`}
                                                 >
                                                     <div className={`absolute left-0 top-3 bottom-3 w-1 rounded-r-full ${categoryColor}`}></div>
+
+                                                    {schedule.status === 'completed' && (
+                                                        <div className="absolute -top-1 -left-1 bg-green-500 text-white rounded-full p-0.5 z-10">
+                                                            <CheckCircle className="w-3.5 h-3.5" />
+                                                        </div>
+                                                    )}
 
                                                     <div className="flex-1 ml-3">
                                                         <div className="flex items-center justify-between mb-1">
