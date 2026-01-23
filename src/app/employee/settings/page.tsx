@@ -6,6 +6,7 @@ import { useTheme } from 'next-themes';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Moon, Sun, Monitor, Save, User, Phone, Image as ImageIcon, Loader2 } from 'lucide-react';
+import ChangePasswordForm from '@/components/shared/ChangePasswordForm';
 
 export default function EmployeeSettingsPage() {
     const { user } = useAuth();
@@ -132,8 +133,8 @@ export default function EmployeeSettingsPage() {
                         <button
                             onClick={() => setTheme('light')}
                             className={`flex-1 p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-3 ${theme === 'light'
-                                    ? 'border-amber-600 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400'
-                                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-600 dark:text-gray-400'
+                                ? 'border-amber-600 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400'
+                                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-600 dark:text-gray-400'
                                 }`}
                         >
                             <Sun className="w-6 h-6" />
@@ -142,8 +143,8 @@ export default function EmployeeSettingsPage() {
                         <button
                             onClick={() => setTheme('dark')}
                             className={`flex-1 p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-3 ${theme === 'dark'
-                                    ? 'border-amber-600 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400'
-                                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-600 dark:text-gray-400'
+                                ? 'border-amber-600 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400'
+                                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-600 dark:text-gray-400'
                                 }`}
                         >
                             <Moon className="w-6 h-6" />
@@ -152,8 +153,8 @@ export default function EmployeeSettingsPage() {
                         <button
                             onClick={() => setTheme('system')}
                             className={`flex-1 p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-3 ${theme === 'system'
-                                    ? 'border-amber-600 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400'
-                                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-600 dark:text-gray-400'
+                                ? 'border-amber-600 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400'
+                                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-600 dark:text-gray-400'
                                 }`}
                         >
                             <Monitor className="w-6 h-6" />
@@ -266,6 +267,9 @@ export default function EmployeeSettingsPage() {
                     </div>
                 </form>
             </div>
+
+            {/* Change Password */}
+            <ChangePasswordForm />
         </div>
     );
 }

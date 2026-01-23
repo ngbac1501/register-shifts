@@ -6,6 +6,7 @@ import { useTheme } from 'next-themes';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Moon, Sun, Monitor, Save, User, Phone, Image as ImageIcon, Loader2 } from 'lucide-react';
+import ChangePasswordForm from '@/components/shared/ChangePasswordForm';
 
 export default function AdminSettingsPage() {
     const { user } = useAuth();
@@ -266,7 +267,11 @@ export default function AdminSettingsPage() {
                     </div>
                 </form>
             </div>
+
+            {/* Change Password */}
+            <ChangePasswordForm />
+
             <p className="text-center text-xs text-gray-400">Version: 1.0.1 (Admin Update)</p>
-        </div >
+        </div>
     );
 }

@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import { Store as StoreIcon, Plus, Edit, Trash2, Search } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { DetailedAddressInput } from '@/components/DetailedAddressInput';
+import ConfirmModal from '@/components/shared/ConfirmModal';
 
 export default function AdminStoresPage() {
     const { data: stores, loading } = useCollection<Store>('stores');
@@ -16,6 +17,8 @@ export default function AdminStoresPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingStore, setEditingStore] = useState<Store | null>(null);
+    const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; storeId: string | null }>({ isOpen: false, storeId: null });
+
     const [formData, setFormData] = useState({
         name: '',
         address: '',
@@ -78,16 +81,25 @@ export default function AdminStoresPage() {
             await updateDoc(doc(db, 'stores', store.id), {
                 isActive: !store.isActive,
             });
+            toast.success(store.isActive ? 'Đã tạm dừng cửa hàng' : 'Đã kích hoạt cửa hàng');
         } catch (error) {
             console.error('Error toggling store status:', error);
+            toast.error('Có lỗi xảy ra khi cập nhật trạng thái');
         }
     };
 
-    const handleDelete = async (storeId: string) => {
-        if (!confirm('Bạn có chắc muốn xóa cửa hàng này?')) return;
+    const handleDeleteClick = (storeId: string) => {
+        setDeleteModal({ isOpen: true, storeId });
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deleteModal.storeId) return;
+        const storeId = deleteModal.storeId;
+
         try {
             await deleteDoc(doc(db, 'stores', storeId));
             toast.success('Đã xóa cửa hàng');
+            setDeleteModal({ isOpen: false, storeId: null });
         } catch (error) {
             console.error('Error deleting store:', error);
             toast.error('Có lỗi xảy ra khi xóa cửa hàng');
@@ -178,7 +190,7 @@ export default function AdminStoresPage() {
                                                         <Edit className="w-4 h-4" />
                                                     </button>
                                                     <button
-                                                        onClick={() => handleDelete(store.id)}
+                                                        onClick={() => handleDeleteClick(store.id)}
                                                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                                         title="Xóa"
                                                     >
@@ -238,7 +250,7 @@ export default function AdminStoresPage() {
                                                 <Edit className="w-4 h-4" />
                                             </button>
                                             <button
-                                                onClick={() => handleDelete(store.id)}
+                                                onClick={() => handleDeleteClick(store.id)}
                                                 className="p-2 text-red-600 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg transition-colors"
                                             >
                                                 <Trash2 className="w-4 h-4" />
@@ -357,6 +369,15 @@ export default function AdminStoresPage() {
                     </div>
                 )
             }
-        </div >
+            <ConfirmModal
+                isOpen={deleteModal.isOpen}
+                onClose={() => setDeleteModal({ isOpen: false, storeId: null })}
+                onConfirm={handleConfirmDelete}
+                title="Xóa cửa hàng?"
+                message="Bạn có chắc chắn muốn xóa cửa hàng này? Tất cả dữ liệu liên quan (nhân viên, lịch làm việc) cũng sẽ bị xóa. Hành động này không thể hoàn tác."
+                confirmText="Xác nhận xóa"
+                cancelText="Hủy"
+            />
+        </div>
     );
 }

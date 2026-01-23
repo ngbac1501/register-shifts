@@ -6,6 +6,7 @@ import { useTheme } from 'next-themes';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Moon, Sun, Monitor, Save, User, Phone, Image as ImageIcon, Loader2 } from 'lucide-react';
+import ChangePasswordForm from '@/components/shared/ChangePasswordForm';
 
 export default function SettingsPage() {
     const { user } = useAuth();
@@ -266,6 +267,9 @@ export default function SettingsPage() {
                     </div>
                 </form>
             </div>
+
+            {/* Change Password */}
+            <ChangePasswordForm />
         </div>
     );
 }

@@ -7,12 +7,16 @@ import { collection, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestor
 import { db } from '@/lib/firebase';
 import { Clock, Plus, Edit, Trash2, Search } from 'lucide-react';
 import { calculateDuration, getShiftTypeLabel } from '@/lib/utils';
+import { toast } from 'react-hot-toast';
+import ConfirmModal from '@/components/shared/ConfirmModal';
 
 export default function AdminShiftsPage() {
     const { data: shifts, loading } = useCollection<Shift>('shifts');
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingShift, setEditingShift] = useState<Shift | null>(null);
+    const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; shiftId: string | null }>({ isOpen: false, shiftId: null });
+
     const [formData, setFormData] = useState({
         name: '',
         startTime: '',
@@ -64,13 +68,15 @@ export default function AdminShiftsPage() {
 
             if (editingShift) {
                 await updateDoc(doc(db, 'shifts', editingShift.id), shiftData);
+                toast.success('Cập nhật ca làm việc thành công');
             } else {
                 await addDoc(collection(db, 'shifts'), shiftData);
+                toast.success('Thêm ca làm việc thành công');
             }
             handleCloseModal();
         } catch (error) {
             console.error('Error saving shift:', error);
-            alert('Có lỗi xảy ra khi lưu ca làm việc');
+            toast.error('Có lỗi xảy ra khi lưu ca làm việc');
         }
     };
 
@@ -79,18 +85,28 @@ export default function AdminShiftsPage() {
             await updateDoc(doc(db, 'shifts', shift.id), {
                 isActive: !shift.isActive,
             });
+            toast.success(shift.isActive ? 'Đã tạm dừng ca làm việc' : 'Đã kích hoạt ca làm việc');
         } catch (error) {
             console.error('Error toggling shift status:', error);
+            toast.error('Có lỗi xảy ra khi cập nhật trạng thái');
         }
     };
 
-    const handleDelete = async (shiftId: string) => {
-        if (!confirm('Bạn có chắc muốn xóa ca làm việc này?')) return;
+    const handleDeleteClick = (shiftId: string) => {
+        setDeleteModal({ isOpen: true, shiftId });
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deleteModal.shiftId) return;
+        const shiftId = deleteModal.shiftId;
+
         try {
             await deleteDoc(doc(db, 'shifts', shiftId));
-        } catch (error) {
+            toast.success('Xóa ca làm việc thành công');
+            setDeleteModal({ isOpen: false, shiftId: null });
+        } catch (error: any) {
             console.error('Error deleting shift:', error);
-            alert('Có lỗi xảy ra khi xóa ca làm việc');
+            toast.error('Có lỗi xảy ra khi xóa ca làm việc');
         }
     };
 
@@ -188,7 +204,7 @@ export default function AdminShiftsPage() {
                                     Sửa
                                 </button>
                                 <button
-                                    onClick={() => handleDelete(shift.id)}
+                                    onClick={() => handleDeleteClick(shift.id)}
                                     className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                 >
                                     <Trash2 className="w-4 h-4" />
@@ -355,6 +371,16 @@ export default function AdminShiftsPage() {
                     </div>
                 </div>
             )}
+
+            <ConfirmModal
+                isOpen={deleteModal.isOpen}
+                onClose={() => setDeleteModal({ isOpen: false, shiftId: null })}
+                onConfirm={handleConfirmDelete}
+                title="Xóa ca làm việc?"
+                message="Bạn có chắc chắn muốn xóa ca làm việc này? Hành động này không thể hoàn tác."
+                confirmText="Xác nhận xóa"
+                cancelText="Hủy"
+            />
         </div>
     );
 }

@@ -92,9 +92,9 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
                     </div>
 
                     {store && (
-                        <div className="flex items-center gap-2 mt-2 p-2 bg-purple-600/30 rounded-lg">
-                            <Store className="w-4 h-4 text-purple-200" />
-                            <span className="text-sm text-purple-100 truncate">{store.name}</span>
+                        <div className="flex items-start gap-2 mt-2 p-2 bg-purple-600/30 rounded-lg">
+                            <Store className="w-4 h-4 text-purple-200 mt-1 flex-shrink-0" />
+                            <span className="text-sm text-purple-100 break-words line-clamp-2">{store.name}</span>
                         </div>
                     )}
                 </div>

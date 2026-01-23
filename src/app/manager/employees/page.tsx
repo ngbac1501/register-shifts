@@ -4,12 +4,13 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useCollection } from '@/hooks/use-firestore';
 import { User, Schedule } from '@/types';
-import { where, updateDoc, doc, Timestamp, setDoc, collection, query, getDocs } from 'firebase/firestore'; // Changed addDoc to setDoc
-import { db } from '@/lib/firebase';
-import { createUserInSecondaryApp } from '@/lib/firebase'; // Import helper
-import { Users, Search, Clock, Calendar, Edit, UserPlus, X, Phone, Mail, DollarSign, Filter, Loader2, Lock } from 'lucide-react'; // Added Lock icon
+import { where, updateDoc, doc, Timestamp, setDoc, collection, query, getDocs } from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
+import { createUserInSecondaryApp } from '@/lib/firebase';
+import { Users, Search, Edit, UserPlus, X, Phone, Mail, DollarSign, Loader2, Lock, Trash2 } from 'lucide-react';
 import { getEmployeeTypeLabel, formatCurrency } from '@/lib/utils';
-import { toast } from 'react-hot-toast'; // Added toast for better UX (optional but recommended)
+import { toast } from 'react-hot-toast';
+import ConfirmModal from '@/components/shared/ConfirmModal';
 
 export default function ManagerEmployeesPage() {
     const { user } = useAuth();
@@ -19,6 +20,7 @@ export default function ManagerEmployeesPage() {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [filterType, setFilterType] = useState<'all' | 'fulltime' | 'parttime'>('all');
+    const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; employeeId: string | null }>({ isOpen: false, employeeId: null });
 
     const [formData, setFormData] = useState({
         displayName: '',
@@ -30,13 +32,12 @@ export default function ManagerEmployeesPage() {
     const [addFormData, setAddFormData] = useState({
         displayName: '',
         email: '',
-        password: '', // Added password field
+        password: '',
         phone: '',
         employeeType: 'fulltime' as 'fulltime' | 'parttime',
         hourlyRate: 0,
     });
 
-    // ... (useCollection hooks remain same) ...
     const { data: employees, loading } = useCollection<User>('users', [
         where('storeId', '==', user?.storeId || ''),
         where('role', '==', 'employee'),
@@ -46,7 +47,6 @@ export default function ManagerEmployeesPage() {
         where('storeId', '==', user?.storeId || ''),
     ]);
 
-    // ... (filteredEmployees, getEmployeeStats, handleEdit, handleCloseModal, handleSubmitEdit remain same) ...
     const filteredEmployees = employees?.filter(emp => {
         const matchesSearch = emp.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             emp.email.toLowerCase().includes(searchTerm.toLowerCase());
@@ -58,7 +58,6 @@ export default function ManagerEmployeesPage() {
         const employeeSchedules = schedules?.filter(s => s.employeeId === employeeId) || [];
         const approvedSchedules = employeeSchedules.filter(s => s.status === 'approved');
         const pendingSchedules = employeeSchedules.filter(s => s.status === 'pending');
-        // Simple calculation
         const totalHours = employeeSchedules.filter(s => s.status === 'completed').length * 8;
 
         return {
@@ -104,9 +103,44 @@ export default function ManagerEmployeesPage() {
                 updatedAt: Timestamp.now(),
             });
             handleCloseModal();
+            toast.success('Cập nhật nhân viên thành công');
         } catch (error) {
             console.error('Error updating employee:', error);
-            alert('Có lỗi xảy ra khi cập nhật thông tin nhân viên');
+            toast.error('Có lỗi xảy ra khi cập nhật thông tin nhân viên');
+        }
+    };
+
+    const handleDeleteClick = (employeeId: string) => {
+        setDeleteModal({ isOpen: true, employeeId });
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deleteModal.employeeId) return;
+        const employeeId = deleteModal.employeeId;
+
+        try {
+            const token = await auth.currentUser?.getIdToken();
+            if (!token) throw new Error('Không tìm thấy thông tin xác thực');
+
+            const response = await fetch('/api/users/delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ targetUserId: employeeId }),
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || 'Không thể xóa nhân viên');
+            }
+
+            toast.success('Đã xóa nhân viên thành công');
+            setDeleteModal({ isOpen: false, employeeId: null });
+        } catch (error: any) {
+            console.error('Error deleting employee:', error);
+            toast.error('Có lỗi xảy ra: ' + error.message);
         }
     };
 
@@ -127,28 +161,25 @@ export default function ManagerEmployeesPage() {
         if (!user?.storeId) return;
 
         if (!addFormData.password || addFormData.password.length < 6) {
-            alert('Mật khẩu phải có ít nhất 6 ký tự');
+            toast.error('Mật khẩu phải có ít nhất 6 ký tự');
             return;
         }
 
         setIsSubmitting(true);
         try {
-            // Check if email already exists in this store (basic check)
             const q = query(
                 collection(db, 'users'),
                 where('email', '==', addFormData.email)
             );
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
-                alert('Email này đã tồn tại trong hệ thống!');
+                toast.error('Email này đã tồn tại trong hệ thống!');
                 setIsSubmitting(false);
                 return;
             }
 
-            // Create Auth User using secondary app to avoid logging out manager
             const newUser = await createUserInSecondaryApp(addFormData.email, addFormData.password);
 
-            // Create Firestore User Document with SAME UID
             await setDoc(doc(db, 'users', newUser.uid), {
                 displayName: addFormData.displayName,
                 email: addFormData.email,
@@ -163,10 +194,10 @@ export default function ManagerEmployeesPage() {
             });
 
             handleCloseAddModal();
-            // toast.success('Thêm nhân viên thành công'); // Would need to add Toaster provider
+            toast.success('Thêm nhân viên thành công');
         } catch (error: any) {
             console.error('Error adding employee:', error);
-            alert('Có lỗi xảy ra khi thêm nhân viên: ' + (error.message || error));
+            toast.error('Có lỗi xảy ra khi thêm nhân viên: ' + (error.message || error));
         } finally {
             setIsSubmitting(false);
         }
@@ -244,13 +275,20 @@ export default function ManagerEmployeesPage() {
                             <div key={employee.id} className="group bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                                 {/* Card Header */}
                                 <div className="p-6 border-b border-gray-50 dark:border-gray-700/50 relative">
-                                    <div className="absolute top-4 right-4">
+                                    <div className="absolute top-4 right-4 flex gap-2">
                                         <button
                                             onClick={() => handleEdit(employee)}
                                             className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
                                             title="Chỉnh sửa"
                                         >
                                             <Edit className="w-5 h-5" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteClick(employee.id)}
+                                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                            title="Xóa nhân viên"
+                                        >
+                                            <Trash2 className="w-5 h-5" />
                                         </button>
                                     </div>
                                     <div className="flex items-center gap-4">
@@ -471,6 +509,16 @@ export default function ManagerEmployeesPage() {
                     </div>
                 </div>
             )}
+
+            <ConfirmModal
+                isOpen={deleteModal.isOpen}
+                onClose={() => setDeleteModal({ isOpen: false, employeeId: null })}
+                onConfirm={handleConfirmDelete}
+                title="Xóa nhân viên?"
+                message="CẢNH BÁO: Hành động này sẽ xóa vĩnh viễn nhân viên và TOÀN BỘ lịch làm việc của họ. Bạn có chắc chắn không?"
+                confirmText="Xác nhận xóa"
+                cancelText="Hủy"
+            />
         </div>
     );
 }

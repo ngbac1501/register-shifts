@@ -8,6 +8,7 @@ import { db, auth } from '@/lib/firebase';
 import { toast } from 'react-hot-toast';
 import { Users, Plus, Edit, Trash2, Search } from 'lucide-react';
 import { formatDate, getRoleLabel, getEmployeeTypeLabel } from '@/lib/utils';
+import ConfirmModal from '@/components/shared/ConfirmModal';
 
 export default function AdminUsersPage() {
     const { data: users, loading } = useCollection<User>('users');
@@ -16,6 +17,8 @@ export default function AdminUsersPage() {
     const [roleFilter, setRoleFilter] = useState<'all' | 'manager' | 'employee'>('all');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; userId: string | null }>({ isOpen: false, userId: null });
+
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -124,28 +127,37 @@ export default function AdminUsersPage() {
         }
     };
 
-    const handleDelete = async (userId: string) => {
-        if (!confirm('Bạn có chắc muốn xóa người dùng này?')) return;
+    const handleDeleteClick = (userId: string) => {
+        setDeleteModal({ isOpen: true, userId });
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deleteModal.userId) return;
+        const userId = deleteModal.userId;
+
         try {
-            // 1. Delete from Firebase Auth (via API)
-            const response = await fetch('/api/admin/remove-user', {
+            const token = await auth.currentUser?.getIdToken();
+            if (!token) throw new Error('Không tìm thấy thông tin xác thực');
+
+            const response = await fetch('/api/users/delete', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ uid: userId }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ targetUserId: userId }),
             });
 
             if (!response.ok) {
                 const data = await response.json();
-                throw new Error(data.error || 'Failed to delete auth user');
+                throw new Error(data.error || 'Không thể xóa người dùng');
             }
 
-            // 2. Delete from Firestore
-            await deleteDoc(doc(db, 'users', userId));
-
-            toast.success('Đã xóa người dùng khỏi hệ thống');
+            toast.success('Đã xóa người dùng và dữ liệu liên quan thành công');
+            setDeleteModal({ isOpen: false, userId: null });
         } catch (error: any) {
             console.error('Error deleting user:', error);
-            toast.error('Có lỗi xảy ra khi xóa người dùng: ' + error.message);
+            toast.error('Có lỗi xảy ra: ' + error.message);
         }
     };
 
@@ -246,7 +258,7 @@ export default function AdminUsersPage() {
                                                         <Edit className="w-4 h-4" />
                                                     </button>
                                                     <button
-                                                        onClick={() => handleDelete(user.id)}
+                                                        onClick={() => handleDeleteClick(user.id)}
                                                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                                         title="Xóa"
                                                     >
@@ -314,7 +326,7 @@ export default function AdminUsersPage() {
                                                 <Edit className="w-4 h-4" />
                                             </button>
                                             <button
-                                                onClick={() => handleDelete(user.id)}
+                                                onClick={() => handleDeleteClick(user.id)}
                                                 className="p-2 text-red-600 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg transition-colors"
                                             >
                                                 <Trash2 className="w-4 h-4" />
@@ -329,7 +341,7 @@ export default function AdminUsersPage() {
                 }
             </div >
 
-            {/* Modal */}
+            {/* Edit User Modal */}
             {
                 isModalOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn" onClick={handleCloseModal}>
@@ -563,6 +575,16 @@ export default function AdminUsersPage() {
                     </div>
                 )
             }
+
+            <ConfirmModal
+                isOpen={deleteModal.isOpen}
+                onClose={() => setDeleteModal({ isOpen: false, userId: null })}
+                onConfirm={handleConfirmDelete}
+                title="Xóa người dùng?"
+                message="CẢNH BÁO: Hành động này sẽ xóa vĩnh viễn tài khoản, thông tin cá nhân và TOÀN BỘ lịch làm việc của người dùng này. Bạn có chắc chắn muốn tiếp tục?"
+                confirmText="Xác nhận xóa"
+                cancelText="Hủy"
+            />
         </div >
     );
 }
