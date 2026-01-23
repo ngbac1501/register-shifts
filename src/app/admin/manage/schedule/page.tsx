@@ -11,7 +11,7 @@ import { startOfWeek, endOfWeek, addWeeks, subWeeks, eachDayOfInterval, format, 
 import { vi } from 'date-fns/locale';
 import { calculateDuration, getShiftCategory } from '@/lib/utils';
 import { db } from '@/lib/firebase';
-import { deleteDoc, doc } from 'firebase/firestore';
+import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { AssignShiftModal } from '@/app/manager/schedule/AssignShiftModal';
 
 export default function AdminSchedulePage() {
@@ -90,12 +90,14 @@ export default function AdminSchedulePage() {
     };
 
     const handleDelete = async (scheduleId: string) => {
-        if (confirm('Bạn có chắc chắn muốn xóa ca làm việc này?')) {
+        if (confirm('Bạn có chắc chắn muốn đưa ca làm việc này về trạng thái chờ duyệt?')) {
             try {
-                await deleteDoc(doc(db, 'schedules', scheduleId));
+                await updateDoc(doc(db, 'schedules', scheduleId), {
+                    status: 'pending'
+                });
             } catch (error) {
                 console.error('Error removing schedule:', error);
-                alert('Có lỗi xảy ra khi xóa');
+                alert('Có lỗi xảy ra khi cập nhật');
             }
         }
     };
@@ -159,8 +161,8 @@ export default function AdminSchedulePage() {
                         <button
                             onClick={handleToday}
                             className={`flex-1 md:flex-none px-4 py-2 rounded-xl transition-colors font-medium text-sm border ${isSameDay(startOfWeek(currentWeek, { weekStartsOn: 1 }), startOfWeek(new Date(), { weekStartsOn: 1 }))
-                                    ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 border-blue-100 dark:border-blue-900/50'
-                                    : 'bg-white text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 border-blue-100 dark:border-blue-900/50'
+                                : 'bg-white text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
                                 }`}
                         >
                             Tuần này
@@ -168,8 +170,8 @@ export default function AdminSchedulePage() {
                         <button
                             onClick={handleJumpToNextWeek}
                             className={`flex-1 md:flex-none px-4 py-2 rounded-xl transition-colors font-medium text-sm border ${isSameDay(startOfWeek(currentWeek, { weekStartsOn: 1 }), startOfWeek(addWeeks(new Date(), 1), { weekStartsOn: 1 }))
-                                    ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 border-blue-100 dark:border-blue-900/50'
-                                    : 'bg-white text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 border-blue-100 dark:border-blue-900/50'
+                                : 'bg-white text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
                                 }`}
                         >
                             Tuần sau
@@ -248,7 +250,7 @@ export default function AdminSchedulePage() {
                                                 className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2 shadow-sm hover:shadow-md transition-all cursor-pointer relative group/card hover:border-green-400 dark:hover:border-green-600"
                                             >
                                                 <div className={`absolute left-0 top-0 bottom-0 w-0.5 rounded-l-lg ${category.id === 'morning' ? 'bg-orange-400' :
-                                                        category.id === 'afternoon' ? 'bg-blue-400' : 'bg-purple-400'
+                                                    category.id === 'afternoon' ? 'bg-blue-400' : 'bg-purple-400'
                                                     }`}></div>
 
                                                 <button

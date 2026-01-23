@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useCollection } from '@/hooks/use-firestore';
 import { Schedule, Shift, User } from '@/types';
-import { where, deleteDoc, doc } from 'firebase/firestore';
+import { where, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { ChevronLeft, ChevronRight, Plus, Trash2, Calendar, Users, Clock, Loader2 } from 'lucide-react';
 import { startOfWeek, endOfWeek, addWeeks, subWeeks, eachDayOfInterval, format, isSameDay } from 'date-fns';
@@ -93,12 +93,14 @@ export default function ManagerSchedulePage() {
     };
 
     const handleDelete = async (scheduleId: string) => {
-        if (confirm('Bạn có chắc chắn muốn xóa ca làm việc này?')) {
+        if (confirm('Bạn có chắc chắn muốn đưa ca làm việc này về trạng thái chờ duyệt?')) {
             try {
-                await deleteDoc(doc(db, 'schedules', scheduleId));
+                await updateDoc(doc(db, 'schedules', scheduleId), {
+                    status: 'pending'
+                });
             } catch (error) {
                 console.error('Error removing schedule:', error);
-                alert('Có lỗi xảy ra khi xóa');
+                alert('Có lỗi xảy ra khi cập nhật');
             }
         }
     };

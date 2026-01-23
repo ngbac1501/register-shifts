@@ -138,6 +138,10 @@ export default function ManagerApprovalsPage() {
         }
 
         return matchesStatus && matchesSearch && matchesDate;
+    })?.sort((a, b) => {
+        const dateA = a.date instanceof Date ? a.date : a.date.toDate();
+        const dateB = b.date instanceof Date ? b.date : b.date.toDate();
+        return dateB.getTime() - dateA.getTime();
     }) || [];
 
     const pendingCount = schedules?.filter(s => s.status === 'pending').length || 0;
