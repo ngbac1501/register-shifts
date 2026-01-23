@@ -6,7 +6,7 @@ import { useCollection } from '@/hooks/use-firestore';
 import { Schedule, Shift, User } from '@/types';
 import { where } from 'firebase/firestore';
 import { useState, useMemo } from 'react';
-import { Calendar, Users, Clock, Loader2, ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { Calendar, Users, Clock, Loader2, ChevronLeft, ChevronRight, Plus, Trash2, CheckCircle } from 'lucide-react';
 import { startOfWeek, endOfWeek, addWeeks, subWeeks, eachDayOfInterval, format, isSameDay } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { calculateDuration, getShiftCategory } from '@/lib/utils';
@@ -42,7 +42,7 @@ export default function AdminSchedulePage() {
         ] : []
     );
 
-    const approvedSchedules = schedules?.filter(s => s.status === 'approved') || [];
+    const approvedSchedules = schedules?.filter(s => s.status === 'approved' || s.status === 'completed') || [];
 
     const getSchedulesForDay = (day: Date) => {
         return approvedSchedules.filter(schedule => {
@@ -110,6 +110,22 @@ export default function AdminSchedulePage() {
             setScheduleToDelete(null);
         } catch (error) {
             console.error('Error removing schedule:', error);
+            alert('Có lỗi xảy ra khi cập nhật');
+        }
+    };
+
+    const handleCompleteShift = async (scheduleId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+
+        if (!confirm('Đánh dấu ca làm việc này là đã hoàn thành?')) return;
+
+        try {
+            await updateDoc(doc(db, 'schedules', scheduleId), {
+                status: 'completed',
+                updatedAt: new Date()
+            });
+        } catch (error) {
+            console.error('Error completing schedule:', error);
             alert('Có lỗi xảy ra khi cập nhật');
         }
     };
@@ -265,16 +281,25 @@ export default function AdminSchedulePage() {
                                                     category.id === 'afternoon' ? 'bg-blue-400' : 'bg-purple-400'
                                                     }`}></div>
 
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleDeleteClick(schedule.id);
-                                                    }}
-                                                    className="absolute -top-1.5 -right-1.5 p-1 bg-white dark:bg-gray-700 text-red-500 rounded-full shadow-sm hover:bg-red-50 dark:hover:bg-red-900/30 opacity-0 group-hover/card:opacity-100 transition-opacity z-20 border border-gray-100 dark:border-gray-600"
-                                                    title="Xóa ca"
-                                                >
-                                                    <Trash2 className="w-3 h-3" />
-                                                </button>
+                                                <div className="absolute -top-1 -right-1 flex flex-col gap-1 opacity-0 group-hover/card:opacity-100 transition-opacity z-20">
+                                                    <button
+                                                        onClick={(e) => handleCompleteShift(schedule.id, e)}
+                                                        className="p-1 bg-white dark:bg-gray-700 text-green-500 rounded-full shadow-sm hover:bg-green-50 dark:hover:bg-green-900/30 border border-gray-100 dark:border-gray-600"
+                                                        title="Hoàn thành"
+                                                    >
+                                                        <CheckCircle className="w-3 h-3" />
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDeleteClick(schedule.id);
+                                                        }}
+                                                        className="p-1 bg-white dark:bg-gray-700 text-red-500 rounded-full shadow-sm hover:bg-red-50 dark:hover:bg-red-900/30 border border-gray-100 dark:border-gray-600"
+                                                        title="Xóa ca"
+                                                    >
+                                                        <Trash2 className="w-3 h-3" />
+                                                    </button>
+                                                </div>
 
                                                 <div className="pl-1.5 overflow-hidden">
                                                     <div className="font-semibold text-gray-900 dark:text-gray-200 text-[11px] truncate leading-tight">
@@ -371,6 +396,13 @@ export default function AdminSchedulePage() {
                                                                 {getEmployeeName(schedule.employeeId)}
                                                             </span>
                                                             <div className="flex gap-2">
+                                                                <button
+                                                                    onClick={(e) => handleCompleteShift(schedule.id, e)}
+                                                                    className="p-1.5 text-green-500 bg-green-50 dark:bg-green-900/20 rounded-lg"
+                                                                    title="Hoàn thành"
+                                                                >
+                                                                    <CheckCircle className="w-4 h-4" />
+                                                                </button>
                                                                 <button
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
