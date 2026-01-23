@@ -11,11 +11,13 @@ export const metadata: Metadata = {
 
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ToastProvider } from "@/components/providers/toast-provider";
+import { ScheduleAutoCompleter } from "@/components/shared/ScheduleAutoCompleter";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="vi" suppressHydrationWarning>
       <body className={inter.className + " bg-gray-50 min-h-screen dark:bg-gray-900 duration-200"}>
+        <ScheduleAutoCompleter />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

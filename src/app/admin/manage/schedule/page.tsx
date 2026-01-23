@@ -12,6 +12,7 @@ import { vi } from 'date-fns/locale';
 import { calculateDuration, getShiftCategory } from '@/lib/utils';
 import { db } from '@/lib/firebase';
 import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { DeleteConfirmationModal } from '@/components/shared/DeleteConfirmationModal';
 import { AssignShiftModal } from '@/app/manager/schedule/AssignShiftModal';
 
 export default function AdminSchedulePage() {
@@ -20,6 +21,10 @@ export default function AdminSchedulePage() {
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
     const [scheduleToEdit, setScheduleToEdit] = useState<Schedule | null>(null);
+
+    // Delete Modal State
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [scheduleToDelete, setScheduleToDelete] = useState<string | null>(null);
 
     const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 });
     const weekEnd = endOfWeek(currentWeek, { weekStartsOn: 1 });
@@ -89,16 +94,23 @@ export default function AdminSchedulePage() {
         setIsAssignModalOpen(true);
     };
 
-    const handleDelete = async (scheduleId: string) => {
-        if (confirm('Bạn có chắc chắn muốn đưa ca làm việc này về trạng thái chờ duyệt?')) {
-            try {
-                await updateDoc(doc(db, 'schedules', scheduleId), {
-                    status: 'pending'
-                });
-            } catch (error) {
-                console.error('Error removing schedule:', error);
-                alert('Có lỗi xảy ra khi cập nhật');
-            }
+    const handleDeleteClick = (scheduleId: string) => {
+        setScheduleToDelete(scheduleId);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!scheduleToDelete) return;
+
+        try {
+            await updateDoc(doc(db, 'schedules', scheduleToDelete), {
+                status: 'pending'
+            });
+            setIsDeleteModalOpen(false);
+            setScheduleToDelete(null);
+        } catch (error) {
+            console.error('Error removing schedule:', error);
+            alert('Có lỗi xảy ra khi cập nhật');
         }
     };
 
@@ -180,8 +192,8 @@ export default function AdminSchedulePage() {
                 </div>
             </div>
 
-            {/* Calendar Grid - Same as Manager */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+            {/* Desktop Calendar Grid - Same as Manager */}
+            <div className="hidden md:block bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
                 <div className="grid grid-cols-[100px_1fr_1fr_1fr_1fr_1fr_1fr_1fr] border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-700/20">
                     <div className="p-4 flex items-center justify-center border-r border-gray-100 dark:border-gray-700 font-semibold text-gray-500 dark:text-gray-400">
                         Ca / Ngày
@@ -256,7 +268,7 @@ export default function AdminSchedulePage() {
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        handleDelete(schedule.id);
+                                                        handleDeleteClick(schedule.id);
                                                     }}
                                                     className="absolute -top-1.5 -right-1.5 p-1 bg-white dark:bg-gray-700 text-red-500 rounded-full shadow-sm hover:bg-red-50 dark:hover:bg-red-900/30 opacity-0 group-hover/card:opacity-100 transition-opacity z-20 border border-gray-100 dark:border-gray-600"
                                                     title="Xóa ca"
@@ -293,6 +305,101 @@ export default function AdminSchedulePage() {
                         })}
                     </div>
                 ))}
+            </div>
+
+            {/* Mobile List View */}
+            <div className="md:hidden space-y-4">
+                {weekDays.map((day, index) => {
+                    const daySchedules = getSchedulesForDay(day);
+                    const isToday = isSameDay(day, new Date());
+
+                    return (
+                        <div key={index} className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border ${isToday ? 'border-blue-200 dark:border-blue-800 ring-1 ring-blue-500/20' : 'border-gray-100 dark:border-gray-700'}`}>
+                            <div className={`px-4 py-3 border-b border-gray-50 dark:border-gray-700/50 flex items-center justify-between ${isToday ? 'bg-blue-50/50 dark:bg-blue-900/20' : ''}`}>
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg ${isToday ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'}`}>
+                                        {format(day, 'd')}
+                                    </div>
+                                    <div>
+                                        <p className={`font-semibold capitalize ${isToday ? 'text-blue-700 dark:text-blue-300' : 'text-gray-900 dark:text-white'}`}>
+                                            {format(day, 'EEEE', { locale: vi })}
+                                        </p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                                            {daySchedules.length} ca làm
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => handleAddClick(day)}
+                                    className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors"
+                                >
+                                    <Plus className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <div className="p-3">
+                                {daySchedules.length === 0 ? (
+                                    <div className="text-center py-6 text-sm text-gray-400 dark:text-gray-500 italic border-2 border-dashed border-gray-100 dark:border-gray-700 rounded-lg">
+                                        Chưa có ca làm việc
+                                    </div>
+                                ) : (
+                                    <div className="grid gap-3">
+                                        {daySchedules.map(schedule => {
+                                            const categoryId = (() => {
+                                                let startTime = schedule.startTime;
+                                                if (!startTime) {
+                                                    const shift = shifts?.find(sh => sh.id === schedule.shiftId);
+                                                    startTime = shift?.startTime;
+                                                }
+                                                return startTime ? getShiftCategory(startTime) : 'morning';
+                                            })();
+
+                                            const categoryColor = categoryId === 'morning' ? 'bg-orange-400' :
+                                                categoryId === 'afternoon' ? 'bg-blue-400' : 'bg-purple-400';
+
+                                            return (
+                                                <div
+                                                    key={schedule.id}
+                                                    onClick={() => handleEditClick(schedule)}
+                                                    className="relative flex items-center bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-3 shadow-sm active:scale-[0.99] transition-transform"
+                                                >
+                                                    <div className={`absolute left-0 top-3 bottom-3 w-1 rounded-r-full ${categoryColor}`}></div>
+
+                                                    <div className="flex-1 ml-3">
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <span className="font-bold text-gray-900 dark:text-white">
+                                                                {getEmployeeName(schedule.employeeId)}
+                                                            </span>
+                                                            <div className="flex gap-2">
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleDeleteClick(schedule.id);
+                                                                    }}
+                                                                    className="p-1.5 text-red-500 bg-red-50 dark:bg-red-900/20 rounded-lg"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+                                                            <span>{getShiftName(schedule.shiftId)}</span>
+                                                            <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-gray-700/50 px-2 py-1 rounded-lg">
+                                                                <Clock className="w-3.5 h-3.5" />
+                                                                {getShiftTime(schedule)}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Summary */}
@@ -353,6 +460,14 @@ export default function AdminSchedulePage() {
                 existingSchedules={schedules || []}
                 storeId={selectedStoreId || ''}
                 scheduleToEdit={scheduleToEdit}
+            />
+
+            <DeleteConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleConfirmDelete}
+                title="Xác nhận hoàn tác"
+                message="Bạn có chắc chắn muốn đưa ca làm việc này về trạng thái chờ duyệt (Pending) không?"
             />
         </div>
     );

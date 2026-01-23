@@ -36,3 +36,17 @@ export const adminAuth = new Proxy({}, {
         return (auth as any)[prop];
     }
 }) as ReturnType<typeof getAuth>;
+
+export const adminDb = new Proxy({}, {
+    get: (_target, prop) => {
+        const app = getAdminApp();
+        if (!app) {
+            throw new Error('Firebase Admin not initialized. Check FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY env vars.');
+        }
+        // Dynamic import to avoid issues if firebase-admin/firestore is not widely used or tree-shakable differently
+        // But standard import is fine.
+        const { getFirestore } = require('firebase-admin/firestore');
+        const db = getFirestore(app);
+        return (db as any)[prop];
+    }
+}) as ReturnType<typeof import('firebase-admin/firestore').getFirestore>;

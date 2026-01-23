@@ -130,14 +130,52 @@ export default function EmployeeSchedulePage() {
             {/* Week Navigation */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 border border-gray-100 dark:border-gray-700">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                    {/* Mobile: Top row with date, Bottom row with nav buttons */}
+                    {/* Desktop: Single row spread */}
+
+                    <div className="flex md:hidden items-center justify-between w-full">
+                        <button
+                            onClick={handlePreviousWeek}
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600"
+                        >
+                            <ChevronLeft className="w-5 h-5" />
+                        </button>
+
+                        <div className="flex flex-col items-center">
+                            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider">
+                                Tuần {format(currentWeek, 'w', { locale: vi })}
+                            </span>
+                            <h2 className="text-base font-bold text-gray-900 dark:text-white">
+                                {format(weekStart, 'dd/MM', { locale: vi })} - {format(weekEnd, 'dd/MM', { locale: vi })}
+                            </h2>
+                        </div>
+
+                        <button
+                            onClick={handleNextWeek}
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600"
+                        >
+                            <ChevronRight className="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    <div className="md:hidden w-full">
+                        <button
+                            onClick={handleToday}
+                            className="w-full py-2 text-sm bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium rounded-xl transition-colors border border-blue-100 dark:border-blue-900/40"
+                        >
+                            Về tuần này
+                        </button>
+                    </div>
+
+                    {/* Desktop Navigation */}
                     <button
                         onClick={handlePreviousWeek}
-                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600"
+                        className="hidden md:block p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600"
                     >
                         <ChevronLeft className="w-5 h-5" />
                     </button>
 
-                    <div className="flex items-center gap-3">
+                    <div className="hidden md:flex items-center gap-3">
                         <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600 dark:text-blue-400">
                             <Calendar className="w-5 h-5" />
                         </div>
@@ -149,7 +187,7 @@ export default function EmployeeSchedulePage() {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="hidden md:flex items-center gap-2">
                         <button
                             onClick={handleToday}
                             className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors shadow-lg shadow-blue-500/30"
@@ -166,8 +204,8 @@ export default function EmployeeSchedulePage() {
                 </div>
             </div>
 
-            {/* Calendar Grid */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+            {/* Desktop Calendar Grid */}
+            <div className="hidden md:block bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
                 {/* Header Row */}
                 <div className="grid grid-cols-7 border-b border-gray-100 dark:border-gray-700">
                     {weekDays.map((day, index) => {
@@ -266,6 +304,82 @@ export default function EmployeeSchedulePage() {
                         );
                     })}
                 </div>
+            </div>
+
+            {/* Mobile List View */}
+            <div className="md:hidden space-y-4">
+                {weekDays.map((day, index) => {
+                    const daySchedules = getSchedulesForDay(day);
+                    const isToday = isSameDay(day, new Date());
+
+                    // Skip days with no schedules to save space, or show all? 
+                    // Showing all ensures they can see the whole week
+
+                    return (
+                        <div key={index} className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border ${isToday ? 'border-blue-200 dark:border-blue-800 ring-1 ring-blue-500/20' : 'border-gray-100 dark:border-gray-700'}`}>
+                            <div className={`px-4 py-3 border-b border-gray-50 dark:border-gray-700/50 flex items-center justify-between ${isToday ? 'bg-blue-50/50 dark:bg-blue-900/20' : ''}`}>
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg ${isToday ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'}`}>
+                                        {format(day, 'd')}
+                                    </div>
+                                    <div>
+                                        <p className={`font-semibold capitalize ${isToday ? 'text-blue-700 dark:text-blue-300' : 'text-gray-900 dark:text-white'}`}>
+                                            {format(day, 'EEEE', { locale: vi })}
+                                        </p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                                            {daySchedules.length} ca làm
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-3 space-y-3">
+                                {daySchedules.length === 0 ? (
+                                    <div className="text-center py-4 text-sm text-gray-400 dark:text-gray-500 italic">
+                                        Không có ca làm việc
+                                    </div>
+                                ) : (
+                                    daySchedules.map(schedule => {
+                                        const shift = getShiftInfo(schedule);
+                                        return (
+                                            <div key={schedule.id} className={`p-3 rounded-lg border ${getStatusBgColor(schedule.status)}`}>
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div>
+                                                        <h4 className="font-semibold text-gray-900 dark:text-white">{shift.name}</h4>
+                                                        <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-300 mt-0.5">
+                                                            <Clock className="w-3.5 h-3.5" />
+                                                            {shift.time}
+                                                        </div>
+                                                    </div>
+                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${getStatusColor(schedule.status)}`}>
+                                                        {getStatusLabel(schedule.status)}
+                                                    </span>
+                                                </div>
+
+                                                {schedule.status === 'pending' && (
+                                                    <div className="flex items-center gap-2 mt-3 pt-3 border-t border-black/5 dark:border-white/5">
+                                                        <button
+                                                            onClick={() => handleEdit(schedule)}
+                                                            className="flex-1 py-1.5 text-xs font-medium bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded text-gray-700 dark:text-gray-200"
+                                                        >
+                                                            Chỉnh sửa
+                                                        </button>
+                                                        <button
+                                                            onClick={() => confirmDelete(schedule.id)}
+                                                            className="flex-1 py-1.5 text-xs font-medium bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded"
+                                                        >
+                                                            Hủy ca
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
 
             <DeleteConfirmationModal

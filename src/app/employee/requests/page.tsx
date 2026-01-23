@@ -72,8 +72,8 @@ export default function EmployeeRequestsPage() {
                 <button
                     onClick={() => setFilterStatus('all')}
                     className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${filterStatus === 'all'
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
                         }`}
                 >
                     Tất cả
@@ -81,8 +81,8 @@ export default function EmployeeRequestsPage() {
                 <button
                     onClick={() => setFilterStatus('pending')}
                     className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2 ${filterStatus === 'pending'
-                            ? 'bg-yellow-500 text-white'
-                            : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                        ? 'bg-yellow-500 text-white'
+                        : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
                         }`}
                 >
                     <Clock className="w-4 h-4" /> Chờ duyệt
@@ -90,17 +90,26 @@ export default function EmployeeRequestsPage() {
                 <button
                     onClick={() => setFilterStatus('approved')}
                     className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2 ${filterStatus === 'approved'
-                            ? 'bg-green-600 text-white'
-                            : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                        ? 'bg-green-600 text-white'
+                        : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
                         }`}
                 >
                     <CheckCircle className="w-4 h-4" /> Đã duyệt
                 </button>
                 <button
+                    onClick={() => setFilterStatus('completed')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2 ${filterStatus === 'completed'
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                        }`}
+                >
+                    <CheckCircle className="w-4 h-4" /> Đã hoàn thành
+                </button>
+                <button
                     onClick={() => setFilterStatus('rejected')}
                     className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2 ${filterStatus === 'rejected'
-                            ? 'bg-red-600 text-white'
-                            : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                        ? 'bg-red-600 text-white'
+                        : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
                         }`}
                 >
                     <XCircle className="w-4 h-4" /> Từ chối

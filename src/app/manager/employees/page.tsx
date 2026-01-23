@@ -4,10 +4,12 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useCollection } from '@/hooks/use-firestore';
 import { User, Schedule } from '@/types';
-import { where, updateDoc, doc, Timestamp, addDoc, collection, query, getDocs } from 'firebase/firestore';
+import { where, updateDoc, doc, Timestamp, setDoc, collection, query, getDocs } from 'firebase/firestore'; // Changed addDoc to setDoc
 import { db } from '@/lib/firebase';
-import { Users, Search, Clock, Calendar, Edit, UserPlus, X, Phone, Mail, DollarSign, Filter, Loader2 } from 'lucide-react';
+import { createUserInSecondaryApp } from '@/lib/firebase'; // Import helper
+import { Users, Search, Clock, Calendar, Edit, UserPlus, X, Phone, Mail, DollarSign, Filter, Loader2, Lock } from 'lucide-react'; // Added Lock icon
 import { getEmployeeTypeLabel, formatCurrency } from '@/lib/utils';
+import { toast } from 'react-hot-toast'; // Added toast for better UX (optional but recommended)
 
 export default function ManagerEmployeesPage() {
     const { user } = useAuth();
@@ -28,11 +30,13 @@ export default function ManagerEmployeesPage() {
     const [addFormData, setAddFormData] = useState({
         displayName: '',
         email: '',
+        password: '', // Added password field
         phone: '',
         employeeType: 'fulltime' as 'fulltime' | 'parttime',
         hourlyRate: 0,
     });
 
+    // ... (useCollection hooks remain same) ...
     const { data: employees, loading } = useCollection<User>('users', [
         where('storeId', '==', user?.storeId || ''),
         where('role', '==', 'employee'),
@@ -42,6 +46,7 @@ export default function ManagerEmployeesPage() {
         where('storeId', '==', user?.storeId || ''),
     ]);
 
+    // ... (filteredEmployees, getEmployeeStats, handleEdit, handleCloseModal, handleSubmitEdit remain same) ...
     const filteredEmployees = employees?.filter(emp => {
         const matchesSearch = emp.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             emp.email.toLowerCase().includes(searchTerm.toLowerCase());
@@ -110,6 +115,7 @@ export default function ManagerEmployeesPage() {
         setAddFormData({
             displayName: '',
             email: '',
+            password: '',
             phone: '',
             employeeType: 'fulltime',
             hourlyRate: 0,
@@ -119,6 +125,11 @@ export default function ManagerEmployeesPage() {
     const handleSubmitAdd = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!user?.storeId) return;
+
+        if (!addFormData.password || addFormData.password.length < 6) {
+            alert('Mật khẩu phải có ít nhất 6 ký tự');
+            return;
+        }
 
         setIsSubmitting(true);
         try {
@@ -134,7 +145,11 @@ export default function ManagerEmployeesPage() {
                 return;
             }
 
-            await addDoc(collection(db, 'users'), {
+            // Create Auth User using secondary app to avoid logging out manager
+            const newUser = await createUserInSecondaryApp(addFormData.email, addFormData.password);
+
+            // Create Firestore User Document with SAME UID
+            await setDoc(doc(db, 'users', newUser.uid), {
                 displayName: addFormData.displayName,
                 email: addFormData.email,
                 phone: addFormData.phone,
@@ -148,9 +163,10 @@ export default function ManagerEmployeesPage() {
             });
 
             handleCloseAddModal();
-        } catch (error) {
+            // toast.success('Thêm nhân viên thành công'); // Would need to add Toaster provider
+        } catch (error: any) {
             console.error('Error adding employee:', error);
-            alert('Có lỗi xảy ra khi thêm nhân viên');
+            alert('Có lỗi xảy ra khi thêm nhân viên: ' + (error.message || error));
         } finally {
             setIsSubmitting(false);
         }
@@ -336,21 +352,43 @@ export default function ManagerEmployeesPage() {
 
                                     {isAddModalOpen && (
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                                Email <span className="text-red-500">*</span>
-                                            </label>
-                                            <input
-                                                type="email"
-                                                required
-                                                value={addFormData.email}
-                                                onChange={(e) => setAddFormData({ ...addFormData, email: e.target.value })}
-                                                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all dark:text-white"
-                                                placeholder="email@example.com"
-                                            />
-                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 flex items-center gap-1">
-                                                <Mail className="w-3 h-3" />
-                                                Email này được dùng để đăng nhập
-                                            </p>
+                                            <div className="mb-4">
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                    Email <span className="text-red-500">*</span>
+                                                </label>
+                                                <input
+                                                    type="email"
+                                                    required
+                                                    value={addFormData.email}
+                                                    onChange={(e) => setAddFormData({ ...addFormData, email: e.target.value })}
+                                                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all dark:text-white"
+                                                    placeholder="email@example.com"
+                                                />
+                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 flex items-center gap-1">
+                                                    <Mail className="w-3 h-3" />
+                                                    Email này được dùng để đăng nhập
+                                                </p>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                    Mật khẩu <span className="text-red-500">*</span>
+                                                </label>
+                                                <div className="relative">
+                                                    <input
+                                                        type="password"
+                                                        required
+                                                        minLength={6}
+                                                        value={addFormData.password}
+                                                        onChange={(e) => setAddFormData({ ...addFormData, password: e.target.value })}
+                                                        className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all dark:text-white"
+                                                        placeholder="Tối thiểu 6 ký tự"
+                                                    />
+                                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                                        <Lock className="w-4 h-4" />
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
 

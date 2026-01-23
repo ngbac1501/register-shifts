@@ -86,9 +86,11 @@ export default function EmployeeRegisterPage() {
 
     // Calculate conflicts when user selects date and shift
     useEffect(() => {
+        let isActive = true;
+
         const checkConflicts = async () => {
             if (!formData.date || !formData.shiftId || !user) {
-                setConflicts([]);
+                if (isActive) setConflicts([]);
                 return;
             }
 
@@ -108,14 +110,20 @@ export default function EmployeeRegisterPage() {
                     customEndTime: isPartTime ? formData.endTime : undefined,
                 }
             );
-            setConflicts(result);
+
+            if (isActive) {
+                setConflicts(result);
+            }
         };
 
         const timer = setTimeout(() => {
             checkConflicts();
         }, 300);
 
-        return () => clearTimeout(timer);
+        return () => {
+            isActive = false;
+            clearTimeout(timer);
+        };
     }, [formData.date, formData.shiftId, formData.startTime, formData.endTime, user, allSchedules, shifts, store, selectedShift, isPartTime]);
 
     const hasErrors = useMemo(() => {

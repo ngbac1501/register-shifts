@@ -366,7 +366,8 @@ export default function AdminApprovalsPage() {
 
             {/* Table View */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-                <div className="overflow-x-auto">
+                {/* Desktop Table */}
+                <div className="hidden md:block overflow-x-auto">
                     {loading ? (
                         <div className="p-12 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>
                     ) : filteredSchedules.length === 0 ? (
@@ -495,190 +496,304 @@ export default function AdminApprovalsPage() {
                         </table>
                     )}
                 </div>
+
+                {/* Mobile List View */}
+                <div className="md:hidden">
+                    {loading ? (
+                        <div className="p-12 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>
+                    ) : filteredSchedules.length === 0 ? (
+                        <div className="p-12 text-center">
+                            <Filter className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                            <p className="text-gray-500 dark:text-gray-400">Không tìm thấy ca làm việc nào phù hợp</p>
+                        </div>
+                    ) : (
+                        <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                            {filteredSchedules.map((schedule) => {
+                                const shift = getShiftInfo(schedule);
+                                const employee = getEmployeeInfo(schedule.employeeId);
+                                const isPending = schedule.status === 'pending';
+                                const isApproved = schedule.status === 'approved';
+                                const isRejected = schedule.status === 'rejected';
+
+                                return (
+                                    <div key={schedule.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                        <div className="flex items-start justify-between mb-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center overflow-hidden">
+                                                    <img
+                                                        src={employee.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(employee.name)}&background=random`}
+                                                        alt={employee.name}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-gray-900 dark:text-white">{employee.name}</p>
+                                                    <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                                                        <Calendar className="w-3 h-3" />
+                                                        <span>{formatDate(schedule.date, 'dd/MM/yyyy')}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${schedule.status === 'approved' ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800' :
+                                                schedule.status === 'pending' ? 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800' :
+                                                    schedule.status === 'rejected' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' :
+                                                        'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800'
+                                                }`}>
+                                                {getStatusLabel(schedule.status)}
+                                            </span>
+                                        </div>
+
+                                        <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 mb-3 border border-gray-100 dark:border-gray-700/50">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="text-sm font-medium text-gray-900 dark:text-white">{shift.name}</span>
+                                                <span className="text-xs text-gray-500 dark:text-gray-400 font-mono bg-white dark:bg-gray-700 px-2 py-0.5 rounded border border-gray-200 dark:border-gray-600">
+                                                    {shift.duration}h
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-300">
+                                                <Clock className="w-3.5 h-3.5" />
+                                                <span>{shift.time}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-end gap-2 pt-2">
+                                            {isPending && (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleApprove(schedule.id)}
+                                                        className="flex-1 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 py-2 rounded-lg text-sm font-medium hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+                                                    >
+                                                        Duyệt
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleRejectClick(schedule)}
+                                                        className="flex-1 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 py-2 rounded-lg text-sm font-medium hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors"
+                                                    >
+                                                        Từ chối
+                                                    </button>
+                                                </>
+                                            )}
+
+                                            {isApproved && (
+                                                <button
+                                                    onClick={() => handleComplete(schedule.id)}
+                                                    className="flex-1 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 py-2 rounded-lg text-sm font-medium hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
+                                                >
+                                                    Hoàn thành
+                                                </button>
+                                            )}
+
+                                            <div className="flex gap-2 ml-2 border-l border-gray-100 dark:border-gray-700 pl-2">
+                                                <button
+                                                    onClick={() => handleEdit(schedule)}
+                                                    className="p-2 text-blue-600 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg"
+                                                >
+                                                    <Edit className="w-4 h-4" />
+                                                </button>
+                                                {isRejected && (
+                                                    <button
+                                                        onClick={() => handleDeleteClick(schedule)}
+                                                        className="p-2 text-red-600 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+
             </div>
 
+
             {/* Modal Overlay Base */}
-            {(isRejectModalOpen || isEditModalOpen || isDeleteModalOpen) && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+            {
+                (isRejectModalOpen || isEditModalOpen || isDeleteModalOpen) && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
 
-                    {/* Reject Modal */}
-                    {isRejectModalOpen && rejectingSchedule && (
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6 animate-fadeIn">
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full">
-                                    <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
-                                </div>
-                                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Xác nhận từ chối</h2>
-                            </div>
-                            <p className="text-gray-600 dark:text-gray-400 mb-6">
-                                Bạn chắc chắn muốn từ chối ca làm việc của <span className="font-semibold text-gray-900 dark:text-white">{getEmployeeInfo(rejectingSchedule.employeeId).name}</span>?
-                            </p>
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => setIsRejectModalOpen(false)}
-                                    className="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors"
-                                >
-                                    Hủy
-                                </button>
-                                <button
-                                    onClick={handleConfirmReject}
-                                    className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-red-500/30"
-                                >
-                                    Từ chối
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Delete Modal */}
-                    {isDeleteModalOpen && deletingSchedule && (
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6 animate-fadeIn">
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full">
-                                    <Trash2 className="w-6 h-6 text-red-600 dark:text-red-400" />
-                                </div>
-                                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Xoá ca làm việc</h2>
-                            </div>
-                            <p className="text-gray-600 dark:text-gray-400 mb-6">
-                                Hành động này không thể hoàn tác. Bạn chắc chắn muốn xoá ca làm việc này không?
-                            </p>
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => setIsDeleteModalOpen(false)}
-                                    className="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors"
-                                >
-                                    Hủy
-                                </button>
-                                <button
-                                    onClick={handleConfirmDelete}
-                                    className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-red-500/30"
-                                >
-                                    Xoá vĩnh viễn
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Edit Modal */}
-                    {isEditModalOpen && editingSchedule && (
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-lg w-full p-6 animate-fadeIn max-h-[90vh] overflow-y-auto">
-                            <div className="flex items-center justify-between mb-6 border-b border-gray-100 dark:border-gray-700 pb-4">
-                                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Chỉnh sửa ca làm việc</h2>
-                                <button onClick={handleCloseEditModal} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-500">
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-
-                            <form onSubmit={handleSubmitEdit} className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Ngày làm việc
-                                    </label>
-                                    <input
-                                        type="date"
-                                        required
-                                        value={editFormData.date}
-                                        onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })}
-                                        className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all dark:text-white [color-scheme:light] dark:[color-scheme:dark]"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Ca làm việc
-                                    </label>
-                                    <div className="relative">
-                                        <select
-                                            required
-                                            value={editFormData.shiftId}
-                                            onChange={(e) => handleShiftChange(e.target.value)}
-                                            className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all dark:text-white appearance-none"
-                                        >
-                                            <option value="">-- Chọn ca --</option>
-                                            {shifts?.filter(s => s.type !== 'parttime').map((shift) => (
-                                                <option key={shift.id} value={shift.id} className="dark:bg-gray-800">
-                                                    {shift.name} ({shift.startTime} - {shift.endTime})
-                                                </option>
-                                            ))}
-                                            {shifts?.find(s => s.type === 'parttime') && (
-                                                <option value={shifts.find(s => s.type === 'parttime')?.id} className="dark:bg-gray-800">
-                                                    Part-time (Giờ linh hoạt)
-                                                </option>
-                                            )}
-                                        </select>
-                                        <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                        {/* Reject Modal */}
+                        {isRejectModalOpen && rejectingSchedule && (
+                            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6 animate-fadeIn">
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full">
+                                        <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
                                     </div>
+                                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Xác nhận từ chối</h2>
                                 </div>
-
-                                {isEditingPartTime && (
-                                    <div className="grid grid-cols-2 gap-4 bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                                                <Clock className="w-3 h-3" /> Giờ bắt đầu
-                                            </label>
-                                            <input
-                                                type="time"
-                                                required
-                                                value={editFormData.startTime}
-                                                onChange={(e) => setEditFormData({ ...editFormData, startTime: e.target.value })}
-                                                className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none dark:text-white [color-scheme:light] dark:[color-scheme:dark]"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                                                <Clock className="w-3 h-3" /> Giờ kết thúc
-                                            </label>
-                                            <input
-                                                type="time"
-                                                required
-                                                value={editFormData.endTime}
-                                                onChange={(e) => setEditFormData({ ...editFormData, endTime: e.target.value })}
-                                                className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none dark:text-white [color-scheme:light] dark:[color-scheme:dark]"
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Trạng thái
-                                    </label>
-                                    <div className="relative">
-                                        <select
-                                            required
-                                            value={editFormData.status}
-                                            onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value as any })}
-                                            className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all dark:text-white appearance-none"
-                                        >
-                                            <option value="pending" className="dark:bg-gray-800">Chờ duyệt</option>
-                                            <option value="approved" className="dark:bg-gray-800">Đã duyệt</option>
-                                            <option value="rejected" className="dark:bg-gray-800">Từ chối</option>
-                                            <option value="completed" className="dark:bg-gray-800">Hoàn thành</option>
-                                        </select>
-                                        <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-4 pt-4 border-t border-gray-100 dark:border-gray-700 mt-2">
+                                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                                    Bạn chắc chắn muốn từ chối ca làm việc của <span className="font-semibold text-gray-900 dark:text-white">{getEmployeeInfo(rejectingSchedule.employeeId).name}</span>?
+                                </p>
+                                <div className="flex gap-3">
                                     <button
-                                        type="button"
-                                        onClick={handleCloseEditModal}
+                                        onClick={() => setIsRejectModalOpen(false)}
                                         className="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors"
                                     >
                                         Hủy
                                     </button>
                                     <button
-                                        type="submit"
-                                        className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg hover:shadow-blue-500/30 font-medium transition-colors"
+                                        onClick={handleConfirmReject}
+                                        className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-red-500/30"
                                     >
-                                        Cập nhật
+                                        Từ chối
                                     </button>
                                 </div>
-                            </form>
-                        </div>
-                    )}
-                </div>
-            )}
-        </div>
+                            </div>
+                        )}
+
+                        {/* Delete Modal */}
+                        {isDeleteModalOpen && deletingSchedule && (
+                            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6 animate-fadeIn">
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full">
+                                        <Trash2 className="w-6 h-6 text-red-600 dark:text-red-400" />
+                                    </div>
+                                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Xoá ca làm việc</h2>
+                                </div>
+                                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                                    Hành động này không thể hoàn tác. Bạn chắc chắn muốn xoá ca làm việc này không?
+                                </p>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setIsDeleteModalOpen(false)}
+                                        className="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors"
+                                    >
+                                        Hủy
+                                    </button>
+                                    <button
+                                        onClick={handleConfirmDelete}
+                                        className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-red-500/30"
+                                    >
+                                        Xoá vĩnh viễn
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Edit Modal */}
+                        {isEditModalOpen && editingSchedule && (
+                            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-lg w-full p-6 animate-fadeIn max-h-[90vh] overflow-y-auto">
+                                <div className="flex items-center justify-between mb-6 border-b border-gray-100 dark:border-gray-700 pb-4">
+                                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Chỉnh sửa ca làm việc</h2>
+                                    <button onClick={handleCloseEditModal} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-500">
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+
+                                <form onSubmit={handleSubmitEdit} className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            Ngày làm việc
+                                        </label>
+                                        <input
+                                            type="date"
+                                            required
+                                            value={editFormData.date}
+                                            onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })}
+                                            className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all dark:text-white [color-scheme:light] dark:[color-scheme:dark]"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            Ca làm việc
+                                        </label>
+                                        <div className="relative">
+                                            <select
+                                                required
+                                                value={editFormData.shiftId}
+                                                onChange={(e) => handleShiftChange(e.target.value)}
+                                                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all dark:text-white appearance-none"
+                                            >
+                                                <option value="">-- Chọn ca --</option>
+                                                {shifts?.filter(s => s.type !== 'parttime').map((shift) => (
+                                                    <option key={shift.id} value={shift.id} className="dark:bg-gray-800">
+                                                        {shift.name} ({shift.startTime} - {shift.endTime})
+                                                    </option>
+                                                ))}
+                                                {shifts?.find(s => s.type === 'parttime') && (
+                                                    <option value={shifts.find(s => s.type === 'parttime')?.id} className="dark:bg-gray-800">
+                                                        Part-time (Giờ linh hoạt)
+                                                    </option>
+                                                )}
+                                            </select>
+                                            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                        </div>
+                                    </div>
+
+                                    {isEditingPartTime && (
+                                        <div className="grid grid-cols-2 gap-4 bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
+                                                    <Clock className="w-3 h-3" /> Giờ bắt đầu
+                                                </label>
+                                                <input
+                                                    type="time"
+                                                    required
+                                                    value={editFormData.startTime}
+                                                    onChange={(e) => setEditFormData({ ...editFormData, startTime: e.target.value })}
+                                                    className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none dark:text-white [color-scheme:light] dark:[color-scheme:dark]"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
+                                                    <Clock className="w-3 h-3" /> Giờ kết thúc
+                                                </label>
+                                                <input
+                                                    type="time"
+                                                    required
+                                                    value={editFormData.endTime}
+                                                    onChange={(e) => setEditFormData({ ...editFormData, endTime: e.target.value })}
+                                                    className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none dark:text-white [color-scheme:light] dark:[color-scheme:dark]"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            Trạng thái
+                                        </label>
+                                        <div className="relative">
+                                            <select
+                                                required
+                                                value={editFormData.status}
+                                                onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value as any })}
+                                                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all dark:text-white appearance-none"
+                                            >
+                                                <option value="pending" className="dark:bg-gray-800">Chờ duyệt</option>
+                                                <option value="approved" className="dark:bg-gray-800">Đã duyệt</option>
+                                                <option value="rejected" className="dark:bg-gray-800">Từ chối</option>
+                                                <option value="completed" className="dark:bg-gray-800">Hoàn thành</option>
+                                            </select>
+                                            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-4 pt-4 border-t border-gray-100 dark:border-gray-700 mt-2">
+                                        <button
+                                            type="button"
+                                            onClick={handleCloseEditModal}
+                                            className="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors"
+                                        >
+                                            Hủy
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg hover:shadow-blue-500/30 font-medium transition-colors"
+                                        >
+                                            Cập nhật
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        )}
+                    </div>
+                )
+            }
+        </div >
     );
 }

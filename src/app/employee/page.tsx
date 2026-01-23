@@ -152,42 +152,73 @@ export default function EmployeeDashboard() {
             </div>
           ) : (
             <div className="space-y-4">
-              {approvedSchedules.slice(0, 5).map((schedule) => {
-                const shift = shifts?.find(s => s.id === schedule.shiftId);
-                const date = schedule.date instanceof Date ? schedule.date : schedule.date.toDate();
+              {approvedSchedules
+                .filter(s => {
+                  const date = s.date instanceof Date ? s.date : s.date.toDate();
+                  // Keep shifts from today onwards
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  return date >= today;
+                })
+                .sort((a, b) => {
+                  const dateA = a.date instanceof Date ? a.date : a.date.toDate();
+                  const dateB = b.date instanceof Date ? b.date : b.date.toDate();
+                  // Sort ascending (nearest first)
+                  return dateA.getTime() - dateB.getTime();
+                })
+                .slice(0, 5)
+                .map((schedule, index) => {
+                  const shift = shifts?.find(s => s.id === schedule.shiftId);
+                  const date = schedule.date instanceof Date ? schedule.date : schedule.date.toDate();
+                  const isNextShift = index === 0; // First item is the next upcoming shift
 
-                return (
-                  <div
-                    key={schedule.id}
-                    className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-700 hover:shadow-md transition-all group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="flex-shrink-0 w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold border border-blue-100 dark:border-blue-900/30">
-                        {format(date, 'dd')}
+                  return (
+                    <div
+                      key={schedule.id}
+                      className={`flex items-center justify-between p-4 rounded-xl border transition-all group ${isNextShift
+                          ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 shadow-md ring-1 ring-blue-500/20'
+                          : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-700 hover:shadow-md'
+                        }`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center font-bold border ${isNextShift
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/30'
+                            : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-900/30'
+                          }`}>
+                          {format(date, 'dd')}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className={`font-semibold ${isNextShift ? 'text-blue-900 dark:text-blue-100' : 'text-gray-900 dark:text-white'}`}>
+                              {shift?.type === 'parttime' ? 'Part-time' : (shift?.name || 'Ca làm việc')}
+                            </p>
+                            {isNextShift && (
+                              <span className="px-2 py-0.5 rounded-full bg-blue-600 text-white text-[10px] uppercase font-bold tracking-wider animate-pulse">
+                                Sắp tới
+                              </span>
+                            )}
+                          </div>
+                          <p className={`text-sm flex items-center gap-1.5 mt-0.5 ${isNextShift ? 'text-blue-700 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400'}`}>
+                            <Clock className={`w-3.5 h-3.5 ${isNextShift ? 'text-blue-600' : ''}`} />
+                            {schedule.startTime && schedule.endTime
+                              ? `${schedule.startTime} - ${schedule.endTime}`
+                              : (shift ? `${shift.startTime} - ${shift.endTime}` : schedule.shiftId)}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-semibold text-gray-900 dark:text-white">
-                          {shift?.type === 'parttime' ? 'Part-time' : (shift?.name || 'Ca làm việc')}
-                        </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1.5 mt-0.5">
-                          <Clock className="w-3.5 h-3.5" />
-                          {schedule.startTime && schedule.endTime
-                            ? `${schedule.startTime} - ${schedule.endTime}`
-                            : (shift ? `${shift.startTime} - ${shift.endTime}` : schedule.shiftId)}
+                      <div className="text-right">
+                        {!isNextShift && (
+                          <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-medium border border-green-200 dark:border-green-800">
+                            Đã duyệt
+                          </span>
+                        )}
+                        <p className={`text-xs mt-2 capitalize font-medium ${isNextShift ? 'text-blue-600 dark:text-blue-300' : 'text-gray-400 dark:text-gray-500'}`}>
+                          {format(date, 'EEEE, MM/yyyy', { locale: vi })}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-medium border border-green-200 dark:border-green-800">
-                        Đã duyệt
-                      </span>
-                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 capitalize font-medium">
-                        {format(date, 'EEEE, MM/yyyy', { locale: vi })}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           )}
         </div>

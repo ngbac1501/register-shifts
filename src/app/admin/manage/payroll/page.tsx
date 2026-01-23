@@ -213,69 +213,156 @@ export default function AdminPayrollPage() {
                     </button>
                 </div>
 
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-gray-50 border-b border-gray-200">
-                            <tr>
-                                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">STT</th>
-                                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">Nhân viên</th>
-                                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">Loại NV</th>
-                                <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700">Lương/giờ</th>
-                                <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700">Số ca</th>
-                                <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700">Tổng giờ</th>
-                                <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700">Phụ cấp đêm</th>
-                                <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700">Tổng lương</th>
+            </div>
+
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+                <table className="w-full">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">STT</th>
+                            <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">Nhân viên</th>
+                            <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">Loại NV</th>
+                            <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700">Lương/giờ</th>
+                            <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700">Số ca</th>
+                            <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700">Tổng giờ</th>
+                            <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700">Phụ cấp đêm</th>
+                            <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700">Tổng lương</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                        {currentPayroll.employees.map((emp, index) => (
+                            <tr key={emp.employeeId} className="hover:bg-gray-50 transition-colors">
+                                <td className="py-4 px-6 text-gray-600">{index + 1}</td>
+                                <td className="py-4 px-6">
+                                    <p className="font-medium text-gray-900">{emp.employeeName}</p>
+                                </td>
+                                <td className="py-4 px-6">
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${emp.employeeType === 'fulltime'
+                                        ? 'bg-blue-100 text-blue-800'
+                                        : 'bg-purple-100 text-purple-800'
+                                        }`}>
+                                        {getEmployeeTypeLabel(emp.employeeType as any)}
+                                    </span>
+                                </td>
+                                <td className="py-4 px-6 text-right text-gray-900">
+                                    {formatCurrency(emp.hourlyRate)}
+                                </td>
+                                <td className="py-4 px-6 text-right text-gray-900">{emp.completedShifts}</td>
+                                <td className="py-4 px-6 text-right text-gray-900">{emp.totalHours}h</td>
+                                <td className="py-4 px-6 text-right text-purple-600">
+                                    {emp.nightShiftAllowance > 0 ? formatCurrency(emp.nightShiftAllowance) : '-'}
+                                </td>
+                                <td className="py-4 px-6 text-right font-bold text-orange-600">
+                                    {formatCurrency(emp.totalSalary)}
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {currentPayroll.employees.map((emp, index) => (
-                                <tr key={emp.employeeId} className="hover:bg-gray-50 transition-colors">
-                                    <td className="py-4 px-6 text-gray-600">{index + 1}</td>
-                                    <td className="py-4 px-6">
-                                        <p className="font-medium text-gray-900">{emp.employeeName}</p>
-                                    </td>
-                                    <td className="py-4 px-6">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${emp.employeeType === 'fulltime'
-                                            ? 'bg-blue-100 text-blue-800'
-                                            : 'bg-purple-100 text-purple-800'
+                        ))}
+                    </tbody>
+                    <tfoot className="bg-gray-50 border-t-2 border-gray-300">
+                        <tr>
+                            <td colSpan={4} className="py-4 px-6 font-bold text-gray-900">TỔNG CỘNG</td>
+                            <td className="py-4 px-6 text-right font-bold text-gray-900">
+                                {currentPayroll.totalShifts}
+                            </td>
+                            <td className="py-4 px-6 text-right font-bold text-gray-900">
+                                {currentPayroll.totalHours}h
+                            </td>
+                            <td className="py-4 px-6 text-right font-bold text-purple-600">
+                                {formatCurrency(currentPayroll.totalNightAllowance)}
+                            </td>
+                            <td className="py-4 px-6 text-right font-bold text-orange-600">
+                                {formatCurrency(currentPayroll.totalSalary)}
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            {/* Mobile Card List View */}
+            <div className="md:hidden">
+                <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {currentPayroll.employees.map((emp, index) => (
+                        <div key={emp.employeeId} className="p-4 bg-white dark:bg-gray-800">
+                            <div className="flex justify-between items-start mb-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center font-bold text-gray-500 text-xs shadow-sm">
+                                        #{index + 1}
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-gray-900 dark:text-white text-base">{emp.employeeName}</h3>
+                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${emp.employeeType === 'fulltime'
+                                            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                            : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
                                             }`}>
                                             {getEmployeeTypeLabel(emp.employeeType as any)}
                                         </span>
-                                    </td>
-                                    <td className="py-4 px-6 text-right text-gray-900">
-                                        {formatCurrency(emp.hourlyRate)}
-                                    </td>
-                                    <td className="py-4 px-6 text-right text-gray-900">{emp.completedShifts}</td>
-                                    <td className="py-4 px-6 text-right text-gray-900">{emp.totalHours}h</td>
-                                    <td className="py-4 px-6 text-right text-purple-600">
-                                        {emp.nightShiftAllowance > 0 ? formatCurrency(emp.nightShiftAllowance) : '-'}
-                                    </td>
-                                    <td className="py-4 px-6 text-right font-bold text-orange-600">
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-xs text-gray-400 mb-0.5">Tổng lương</p>
+                                    <p className="text-lg font-bold text-orange-600 dark:text-orange-400">
                                         {formatCurrency(emp.totalSalary)}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                        <tfoot className="bg-gray-50 border-t-2 border-gray-300">
-                            <tr>
-                                <td colSpan={4} className="py-4 px-6 font-bold text-gray-900">TỔNG CỘNG</td>
-                                <td className="py-4 px-6 text-right font-bold text-gray-900">
-                                    {currentPayroll.totalShifts}
-                                </td>
-                                <td className="py-4 px-6 text-right font-bold text-gray-900">
-                                    {currentPayroll.totalHours}h
-                                </td>
-                                <td className="py-4 px-6 text-right font-bold text-purple-600">
-                                    {formatCurrency(currentPayroll.totalNightAllowance)}
-                                </td>
-                                <td className="py-4 px-6 text-right font-bold text-orange-600">
-                                    {formatCurrency(currentPayroll.totalSalary)}
-                                </td>
-                            </tr>
-                        </tfoot>
-                    </table>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 mb-2 bg-gray-50 dark:bg-gray-700/30 p-3 rounded-xl border border-gray-100 dark:border-gray-700/50">
+                                <div>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">Số ca làm</p>
+                                    <div className="font-semibold text-gray-900 dark:text-white flex items-center gap-1.5 mt-0.5">
+                                        <Calendar className="w-3.5 h-3.5 text-blue-500" />
+                                        {emp.completedShifts}
+                                    </div>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">Tổng giờ</p>
+                                    <div className="font-semibold text-gray-900 dark:text-white flex items-center gap-1.5 mt-0.5">
+                                        <Clock className="w-3.5 h-3.5 text-purple-500" />
+                                        {emp.totalHours}h
+                                    </div>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">Lương/giờ</p>
+                                    <p className="font-semibold text-gray-900 dark:text-white mt-0.5">
+                                        {formatCurrency(emp.hourlyRate)}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">Phụ cấp đêm</p>
+                                    <p className={`font-semibold mt-0.5 ${emp.nightShiftAllowance > 0
+                                        ? 'text-purple-600 dark:text-purple-400'
+                                        : 'text-gray-400'
+                                        }`}>
+                                        {emp.nightShiftAllowance > 0 ? formatCurrency(emp.nightShiftAllowance) : '-'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Mobile Summary Footer */}
+                <div className="bg-gray-50 dark:bg-gray-800/80 border-t border-gray-200 dark:border-gray-700 p-4 space-y-2">
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600 dark:text-gray-400 font-medium">Tổng ca làm</span>
+                        <span className="font-bold text-gray-900 dark:text-white">{currentPayroll.totalShifts}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600 dark:text-gray-400 font-medium">Tổng giờ</span>
+                        <span className="font-bold text-gray-900 dark:text-white">{currentPayroll.totalHours}h</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600 dark:text-gray-400 font-medium">Phụ cấp đêm</span>
+                        <span className="font-bold text-purple-600 dark:text-purple-400">{formatCurrency(currentPayroll.totalNightAllowance)}</span>
+                    </div>
+                    <div className="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700/50 mt-2">
+                        <span className="text-base font-bold text-gray-900 dark:text-white">TỔNG CỘNG</span>
+                        <span className="text-xl font-bold text-orange-600 dark:text-orange-500">{formatCurrency(currentPayroll.totalSalary)}</span>
+                    </div>
                 </div>
             </div>
         </div>
+
     );
 }
