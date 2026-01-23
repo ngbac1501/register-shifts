@@ -224,7 +224,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="text-center text-sm text-gray-500 dark:text-gray-500 mt-8 opacity-80">
-          © 2026 Epatta Coffee & Tea. All rights reserved.
+          © 2026 Epatta Coffee & Tea. All rights reserved. <span className="opacity-50">(v1.0.1)</span>
         </p>
       </div>
     </div>
