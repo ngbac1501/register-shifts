@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { useCollection } from '@/hooks/use-firestore';
 import { User, Store } from '@/types';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { collection, addDoc, updateDoc, deleteDoc, doc, setDoc, Timestamp } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
+import { toast } from 'react-hot-toast';
 import { Users, Plus, Edit, Trash2, Search } from 'lucide-react';
 import { formatDate, getRoleLabel, getEmployeeTypeLabel } from '@/lib/utils';
 
@@ -88,18 +88,17 @@ export default function AdminUsersPage() {
                 }
 
                 await updateDoc(doc(db, 'users', editingUser.id), updateData);
+                toast.success('Cập nhật người dùng thành công');
             } else {
                 // Create new user
                 if (!formData.password) {
-                    alert('Vui lòng nhập mật khẩu');
+                    toast.error('Vui lòng nhập mật khẩu');
                     return;
                 }
 
-                const userCredential = await createUserWithEmailAndPassword(
-                    auth,
-                    formData.email,
-                    formData.password
-                );
+                // Use secondary app to avoid auto-login/redirect
+                const { createUserInSecondaryApp } = await import('@/lib/firebase');
+                const user = await createUserInSecondaryApp(formData.email, formData.password);
 
                 const userData: any = {
                     email: formData.email,
@@ -115,12 +114,13 @@ export default function AdminUsersPage() {
                     userData.hourlyRate = formData.hourlyRate ? parseFloat(formData.hourlyRate) : null;
                 }
 
-                await setDoc(doc(db, 'users', userCredential.user.uid), userData);
+                await setDoc(doc(db, 'users', user.uid), userData);
+                toast.success('Thêm người dùng mới thành công');
             }
             handleCloseModal();
         } catch (error: any) {
             console.error('Error saving user:', error);
-            alert(error.message || 'Có lỗi xảy ra khi lưu người dùng');
+            toast.error(error.message || 'Có lỗi xảy ra khi lưu người dùng');
         }
     };
 
@@ -129,10 +129,10 @@ export default function AdminUsersPage() {
         try {
             await deleteDoc(doc(db, 'users', userId));
             // Note: This doesn't delete the Firebase Auth user, only Firestore document
-            alert('Đã xóa người dùng khỏi Firestore. Lưu ý: Tài khoản Authentication vẫn tồn tại.');
+            toast.success('Đã xóa người dùng khỏi Firestore');
         } catch (error) {
             console.error('Error deleting user:', error);
-            alert('Có lỗi xảy ra khi xóa người dùng');
+            toast.error('Có lỗi xảy ra khi xóa người dùng');
         }
     };
 
@@ -208,8 +208,8 @@ export default function AdminUsersPage() {
                                         <td className="py-3 px-4 text-gray-600">{user.email}</td>
                                         <td className="py-3 px-4">
                                             <span className={`px-3 py-1 rounded-full text-xs font-medium ${user.role === 'manager'
-                                                    ? 'bg-purple-100 text-purple-800'
-                                                    : 'bg-blue-100 text-blue-800'
+                                                ? 'bg-purple-100 text-purple-800'
+                                                : 'bg-blue-100 text-blue-800'
                                                 }`}>
                                                 {getRoleLabel(user.role)}
                                             </span>
@@ -249,149 +249,230 @@ export default function AdminUsersPage() {
 
             {/* Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-                    <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 my-8">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                            {editingUser ? 'Sửa người dùng' : 'Thêm người dùng mới'}
-                        </h2>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Email <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="email"
-                                    required
-                                    disabled={!!editingUser}
-                                    value={formData.email}
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-                                    placeholder="user@epatta.com"
-                                />
-                            </div>
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn" onClick={handleCloseModal}>
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden transform transition-all scale-100 animate-slideUp" onClick={(e) => e.stopPropagation()}>
 
-                            {!editingUser && (
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Mật khẩu <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="password"
-                                        required={!editingUser}
-                                        value={formData.password}
-                                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        placeholder="Tối thiểu 6 ký tự"
-                                    />
+                        {/* Gradient Header */}
+                        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
+                            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -ml-24 -mb-24"></div>
+                            <div className="relative flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
+                                        <Users className="w-8 h-8 text-white" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-bold text-white">
+                                            {editingUser ? 'Cập nhật thông tin' : 'Thêm nhân sự mới'}
+                                        </h2>
+                                        <p className="text-blue-100 text-sm mt-0.5">
+                                            {editingUser ? 'Chỉnh sửa thông tin tài khoản và vai trò' : 'Tạo tài khoản mới cho quản lý hoặc nhân viên'}
+                                        </p>
+                                    </div>
                                 </div>
-                            )}
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Tên hiển thị <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={formData.displayName}
-                                    onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="Nguyễn Văn A"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Vai trò <span className="text-red-500">*</span>
-                                </label>
-                                <select
-                                    required
-                                    value={formData.role}
-                                    onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                <button
+                                    onClick={handleCloseModal}
+                                    className="p-2 hover:bg-white/20 rounded-xl transition-colors"
                                 >
-                                    <option value="manager">Quản lý</option>
-                                    <option value="employee">Nhân viên</option>
-                                </select>
+                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
                             </div>
+                        </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Cửa hàng <span className="text-red-500">*</span>
-                                </label>
-                                <select
-                                    required
-                                    value={formData.storeId}
-                                    onChange={(e) => setFormData({ ...formData, storeId: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                >
-                                    <option value="">-- Chọn cửa hàng --</option>
-                                    {stores?.map((store) => (
-                                        <option key={store.id} value={store.id}>
-                                            {store.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
+                        {/* Content */}
+                        <form onSubmit={handleSubmit}>
+                            <div className="p-6 space-y-5 overflow-y-auto max-h-[calc(90vh-240px)]">
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Số điện thoại
-                                </label>
-                                <input
-                                    type="tel"
-                                    value={formData.phone}
-                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="0901234567"
-                                />
-                            </div>
+                                {/* Account Info Section */}
+                                <div className="space-y-4">
+                                    <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider flex items-center gap-2">
+                                        <span className="w-1 h-4 bg-blue-500 rounded-full"></span>
+                                        Thông tin tài khoản
+                                    </h3>
 
-                            {formData.role === 'employee' && (
-                                <>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Loại nhân viên <span className="text-red-500">*</span>
-                                        </label>
-                                        <select
-                                            required
-                                            value={formData.employeeType}
-                                            onChange={(e) => setFormData({ ...formData, employeeType: e.target.value as any })}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        >
-                                            <option value="fulltime">Toàn thời gian</option>
-                                            <option value="parttime">Bán thời gian</option>
-                                        </select>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                                Email đăng nhập <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="email"
+                                                required
+                                                disabled={!!editingUser}
+                                                value={formData.email}
+                                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none dark:text-white placeholder-gray-400 disabled:opacity-60 disabled:cursor-not-allowed"
+                                                placeholder="user@epatta.com"
+                                            />
+                                        </div>
+
+                                        {!editingUser && (
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                                    Mật khẩu <span className="text-red-500">*</span>
+                                                </label>
+                                                <input
+                                                    type="password"
+                                                    required={!editingUser}
+                                                    value={formData.password}
+                                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none dark:text-white placeholder-gray-400"
+                                                    placeholder="Tối thiểu 6 ký tự"
+                                                />
+                                            </div>
+                                        )}
+
+                                        <div className={!editingUser ? "md:col-span-2" : "md:col-span-1"}>
+                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                                Tên hiển thị <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={formData.displayName}
+                                                onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
+                                                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none dark:text-white placeholder-gray-400"
+                                                placeholder="Nguyễn Văn A"
+                                            />
+                                        </div>
                                     </div>
+                                </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Lương theo giờ (VND)
-                                        </label>
-                                        <input
-                                            type="number"
-                                            value={formData.hourlyRate}
-                                            onChange={(e) => setFormData({ ...formData, hourlyRate: e.target.value })}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            placeholder="30000"
-                                        />
+                                <div className="border-t border-gray-100 dark:border-gray-700"></div>
+
+                                {/* Role & Work Info Section */}
+                                <div className="space-y-4">
+                                    <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider flex items-center gap-2">
+                                        <span className="w-1 h-4 bg-purple-500 rounded-full"></span>
+                                        Vai trò & Công việc
+                                    </h3>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                                Vai trò <span className="text-red-500">*</span>
+                                            </label>
+                                            <div className="relative">
+                                                <select
+                                                    required
+                                                    value={formData.role}
+                                                    onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
+                                                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none dark:text-white appearance-none"
+                                                >
+                                                    <option value="manager">Quản lý</option>
+                                                    <option value="employee">Nhân viên</option>
+                                                </select>
+                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                                Cửa hàng làm việc <span className="text-red-500">*</span>
+                                            </label>
+                                            <div className="relative">
+                                                <select
+                                                    required
+                                                    value={formData.storeId}
+                                                    onChange={(e) => setFormData({ ...formData, storeId: e.target.value })}
+                                                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none dark:text-white appearance-none"
+                                                >
+                                                    <option value="">-- Chọn cửa hàng --</option>
+                                                    {stores?.map((store) => (
+                                                        <option key={store.id} value={store.id}>
+                                                            {store.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                                Số điện thoại
+                                            </label>
+                                            <input
+                                                type="tel"
+                                                value={formData.phone}
+                                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none dark:text-white placeholder-gray-400"
+                                                placeholder="0901234567"
+                                            />
+                                        </div>
                                     </div>
-                                </>
-                            )}
+                                </div>
 
-                            <div className="flex gap-3 pt-4">
+                                {formData.role === 'employee' && (
+                                    <>
+                                        <div className="border-t border-gray-100 dark:border-gray-700"></div>
+
+                                        {/* Employee Specifics */}
+                                        <div className="space-y-4 animate-fadeIn">
+                                            <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider flex items-center gap-2">
+                                                <span className="w-1 h-4 bg-green-500 rounded-full"></span>
+                                                Chi tiết nhân sự
+                                            </h3>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                                        Loại hình <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <div className="relative">
+                                                        <select
+                                                            required
+                                                            value={formData.employeeType}
+                                                            onChange={(e) => setFormData({ ...formData, employeeType: e.target.value as any })}
+                                                            className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none dark:text-white appearance-none"
+                                                        >
+                                                            <option value="fulltime">Toàn thời gian</option>
+                                                            <option value="parttime">Bán thời gian</option>
+                                                        </select>
+                                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                                        Lương theo giờ (VND)
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        value={formData.hourlyRate}
+                                                        onChange={(e) => setFormData({ ...formData, hourlyRate: e.target.value })}
+                                                        className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none dark:text-white placeholder-gray-400"
+                                                        placeholder="30000"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Footer */}
+                            <div className="p-6 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex gap-3">
                                 <button
                                     type="button"
                                     onClick={handleCloseModal}
-                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                                    className="flex-1 px-6 py-3 border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 font-semibold transition-all"
                                 >
-                                    Hủy
+                                    Hủy bỏ
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                    className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl shadow-lg shadow-blue-500/30 font-semibold transition-all transform hover:-translate-y-0.5"
                                 >
-                                    {editingUser ? 'Cập nhật' : 'Thêm'}
+                                    {editingUser ? 'Cập nhật' : 'Thêm mới'}
                                 </button>
                             </div>
                         </form>

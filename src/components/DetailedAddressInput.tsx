@@ -79,8 +79,12 @@ export function DetailedAddressInput({
         }
 
         const fullAddress = parts.join(', ');
-        onChange(fullAddress);
-    }, [houseNumber, street, districtCity, onChange]);
+
+        // Only call onChange if the value actually changed
+        if (fullAddress !== value) {
+            onChange(fullAddress);
+        }
+    }, [houseNumber, street, districtCity, onChange, value]);
 
     return (
         <div className="space-y-3">

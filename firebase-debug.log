@@ -1,0 +1,22 @@
+[debug] [2026-01-23T03:19:20.412Z] ----------------------------------------------------------------------
+[debug] [2026-01-23T03:19:20.414Z] Command:       /opt/homebrew/Cellar/node/25.2.1/bin/node /opt/homebrew/bin/firebase deploy
+[debug] [2026-01-23T03:19:20.414Z] CLI Version:   15.2.1
+[debug] [2026-01-23T03:19:20.414Z] Platform:      darwin
+[debug] [2026-01-23T03:19:20.414Z] Node Version:  v25.2.1
+[debug] [2026-01-23T03:19:20.414Z] Time:          Fri Jan 23 2026 10:19:20 GMT+0700 (Indochina Time)
+[debug] [2026-01-23T03:19:20.414Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-01-23T03:19:20.415Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2026-01-23T03:19:21.584Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-23T03:19:21.584Z] > authorizing via signed-in user (ngbac1501@gmail.com)
+[debug] [2026-01-23T03:19:21.584Z] [iam] checking project register-cfde0 for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2026-01-23T03:19:21.584Z] Checked if tokens are valid: false, expires at: 1768851346901
+[debug] [2026-01-23T03:19:21.584Z] Checked if tokens are valid: false, expires at: 1768851346901
+[debug] [2026-01-23T03:19:21.584Z] > refreshing access token with scopes: []
+[debug] [2026-01-23T03:19:21.585Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-01-23T03:19:21.585Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-01-23T03:19:21.773Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-01-23T03:19:21.773Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-01-23T03:19:21.789Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/register-cfde0:testIamPermissions [none]
+[debug] [2026-01-23T03:19:21.789Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/register-cfde0:testIamPermissions x-goog-quota-user=projects/register-cfde0
+[debug] [2026-01-23T03:19:21.789Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/register-cfde0:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
