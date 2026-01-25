@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useCollection } from '@/hooks/use-firestore';
 import { Schedule, Shift } from '@/types';
 import { where } from 'firebase/firestore';
-import { Calendar, Clock, CheckCircle, XCircle, DollarSign, Loader2 } from 'lucide-react';
+import { Calendar, Clock, CheckCircle, XCircle, DollarSign, Loader2, FileText, ClipboardList } from 'lucide-react';
 import { formatCurrency, calculateDuration, calculateNightShiftHours } from '@/lib/utils';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -176,14 +176,14 @@ export default function EmployeeDashboard() {
                     <div
                       key={schedule.id}
                       className={`flex items-center justify-between p-4 rounded-xl border transition-all group ${isNextShift
-                          ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 shadow-md ring-1 ring-blue-500/20'
-                          : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-700 hover:shadow-md'
+                        ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 shadow-md ring-1 ring-blue-500/20'
+                        : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-700 hover:shadow-md'
                         }`}
                     >
                       <div className="flex items-center gap-4">
                         <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center font-bold border ${isNextShift
-                            ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/30'
-                            : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-900/30'
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/30'
+                          : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-900/30'
                           }`}>
                           {format(date, 'dd')}
                         </div>
@@ -253,6 +253,36 @@ export default function EmployeeDashboard() {
               <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">Xem lịch làm</h3>
                 <p className="text-gray-500 dark:text-gray-400 text-sm">Lịch làm việc cá nhân</p>
+              </div>
+            </div>
+          </a>
+
+          <a
+            href="/employee/leaves"
+            className="block group bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-6 rounded-2xl hover:border-orange-500 dark:hover:border-orange-500 transition-all hover:shadow-md"
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-xl">
+                <FileText className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Đăng ký nghỉ phép</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">Gửi yêu cầu nghỉ phép</p>
+              </div>
+            </div>
+          </a>
+
+          <a
+            href="/employee/requests"
+            className="block group bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-6 rounded-2xl hover:border-emerald-500 dark:hover:border-emerald-500 transition-all hover:shadow-md"
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl">
+                <ClipboardList className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Ca làm đã đăng ký</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">Trạng thái yêu cầu đăng ký ca</p>
               </div>
             </div>
           </a>
