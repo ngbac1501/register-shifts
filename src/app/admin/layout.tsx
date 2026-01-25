@@ -85,7 +85,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </div>
                 <div className="flex items-center gap-2">
                     <NotificationBell />
-                    <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                    <button
+                        onClick={handleLogout}
+                        className="p-2 text-gray-500 hover:text-red-600 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                        title="Đăng xuất"
+                    >
+                        <LogOut className="w-6 h-6" />
+                    </button>
+                    <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden ml-1">
                         <img
                             src={user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName)}&background=random`}
                             alt={user.displayName}
@@ -216,7 +223,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </nav>
 
                     {/* Sidebar Footer */}
-                    <div className="p-4 border-t border-gray-100 dark:border-gray-700 space-y-4 shrink-0">
+                    <div className="p-4 border-t border-gray-100 dark:border-gray-700 space-y-4 shrink-0 lg:block hidden">
                         <div className="flex items-center justify-between px-2">
                             <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Thông báo</span>
                             <NotificationBell />
