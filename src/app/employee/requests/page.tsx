@@ -118,7 +118,8 @@ export default function EmployeeRequestsPage() {
 
             {/* List */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border border-gray-100 dark:border-gray-700">
-                <div className="overflow-x-auto">
+                {/* Desktop view */}
+                <div className="hidden lg:block overflow-x-auto">
                     <table className="w-full">
                         <thead className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
                             <tr>
@@ -146,7 +147,9 @@ export default function EmployeeRequestsPage() {
                                         <tr key={schedule.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                             <td className="py-4 px-6 text-sm">
                                                 <div className="font-medium text-gray-900 dark:text-white">{format(date, 'dd/MM/yyyy')}</div>
-                                                <div className="text-gray-500 dark:text-gray-400 text-xs">{format(date, 'EEEE', { locale: vi })}</div>
+                                                <div className="text-gray-500 dark:text-gray-400 text-xs text-capitalize">
+                                                    {format(date, 'EEEE', { locale: vi })}
+                                                </div>
                                             </td>
                                             <td className="py-4 px-6">
                                                 <div className="font-medium text-gray-900 dark:text-white">{shift.name}</div>
@@ -177,6 +180,67 @@ export default function EmployeeRequestsPage() {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Mobile view */}
+                <div className="lg:hidden">
+                    {filteredSchedules.length === 0 ? (
+                        <div className="py-12 text-center text-gray-500 dark:text-gray-400">
+                            Không tìm thấy ca làm việc nào
+                        </div>
+                    ) : (
+                        <div className="p-4 space-y-4">
+                            {filteredSchedules.map((schedule) => {
+                                const shift = getShiftInfo(schedule.shiftId);
+                                const date = schedule.date instanceof Date ? schedule.date : schedule.date.toDate();
+                                const isPending = schedule.status === 'pending';
+                                const isRejected = schedule.status === 'rejected';
+
+                                return (
+                                    <div key={schedule.id} className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700 shadow-sm space-y-3">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <div className="text-sm font-bold text-gray-900 dark:text-white">{format(date, 'dd/MM/yyyy')}</div>
+                                                <div className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                                                    {format(date, 'EEEE', { locale: vi })}
+                                                </div>
+                                            </div>
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(schedule.status)} bg-opacity-10`}>
+                                                {getStatusLabel(schedule.status)}
+                                            </span>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3">
+                                            <div>
+                                                <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold">Ca làm việc</p>
+                                                <p className="text-sm font-bold text-gray-900 dark:text-white">{shift.name}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold">Thời gian</p>
+                                                <p className="text-sm font-bold text-gray-900 dark:text-white">{shift.time}</p>
+                                            </div>
+                                        </div>
+
+                                        {isRejected && (
+                                            <div className="text-xs text-red-500 bg-red-50 dark:bg-red-900/10 p-2 rounded-lg border border-red-100 dark:border-red-900/20">
+                                                Lý do: Đã bị từ chối bởi quản trị viên
+                                            </div>
+                                        )}
+
+                                        {isPending && (
+                                            <button
+                                                onClick={() => handleDeleteClick(schedule)}
+                                                className="w-full flex items-center justify-center gap-2 py-2.5 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 font-bold rounded-xl text-sm border border-red-100 dark:border-red-900/20 transition-colors"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                                Hủy đăng ký ca này
+                                            </button>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
             </div>
 
