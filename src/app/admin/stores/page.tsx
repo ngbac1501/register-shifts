@@ -6,7 +6,7 @@ import { Store, User } from '@/types';
 import { collection, addDoc, updateDoc, deleteDoc, doc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import toast from 'react-hot-toast';
-import { Store as StoreIcon, Plus, Edit, Trash2, Search } from 'lucide-react';
+import { Store as StoreIcon, Plus, Edit, Trash2, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { DetailedAddressInput } from '@/components/DetailedAddressInput';
 import ConfirmModal from '@/components/shared/ConfirmModal';
@@ -18,6 +18,8 @@ export default function AdminStoresPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingStore, setEditingStore] = useState<Store | null>(null);
     const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; storeId: string | null }>({ isOpen: false, storeId: null });
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
 
     const [formData, setFormData] = useState({
         name: '',
@@ -31,6 +33,18 @@ export default function AdminStoresPage() {
         store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         store.address.toLowerCase().includes(searchTerm.toLowerCase())
     ) || [];
+
+    // Pagination calculations
+    const totalPages = Math.ceil(filteredStores.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedStores = filteredStores.slice(startIndex, endIndex);
+
+    // Reset to page 1 when search changes
+    const handleSearchChange = (value: string) => {
+        setSearchTerm(value);
+        setCurrentPage(1);
+    };
 
     const handleOpenModal = (store?: Store) => {
         if (store) {
@@ -114,8 +128,8 @@ export default function AdminStoresPage() {
     return (
         <div>
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý cửa hàng</h1>
-                <p className="text-gray-600">Thêm, sửa, xóa cửa hàng trong hệ thống</p>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Quản lý cửa hàng</h1>
+                <p className="text-gray-600 dark:text-gray-400">Thêm, sửa, xóa cửa hàng trong hệ thống</p>
             </div>
 
             {/* Search and Add */}
@@ -126,8 +140,8 @@ export default function AdminStoresPage() {
                         type="text"
                         placeholder="Tìm kiếm cửa hàng..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        onChange={(e) => handleSearchChange(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none dark:text-white"
                     />
                 </div>
                 <button
@@ -140,7 +154,7 @@ export default function AdminStoresPage() {
             </div>
 
             {/* Stores Table */}
-            <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border border-gray-100 dark:border-gray-700">
                 {loading ? (
                     <div className="p-8 text-center text-gray-500">Đang tải...</div>
                 ) : filteredStores.length === 0 ? (
@@ -152,22 +166,22 @@ export default function AdminStoresPage() {
                         {/* Desktop Table */}
                         <div className="hidden md:block overflow-x-auto">
                             <table className="w-full">
-                                <thead className="bg-gray-50 border-b border-gray-200">
+                                <thead className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
                                     <tr>
-                                        <th className="text-left py-3 px-4 text-gray-600 font-medium">Tên cửa hàng</th>
-                                        <th className="text-left py-3 px-4 text-gray-600 font-medium">Địa chỉ</th>
-                                        <th className="text-left py-3 px-4 text-gray-600 font-medium">Quản lý</th>
-                                        <th className="text-left py-3 px-4 text-gray-600 font-medium">Trạng thái</th>
-                                        <th className="text-left py-3 px-4 text-gray-600 font-medium">Ngày tạo</th>
-                                        <th className="text-right py-3 px-4 text-gray-600 font-medium">Thao tác</th>
+                                        <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">Tên cửa hàng</th>
+                                        <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">Địa chỉ</th>
+                                        <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">Quản lý</th>
+                                        <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">Trạng thái</th>
+                                        <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">Ngày tạo</th>
+                                        <th className="text-right py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredStores.map((store) => (
-                                        <tr key={store.id} className="border-b border-gray-100 hover:bg-gray-50">
-                                            <td className="py-3 px-4 font-medium">{store.name}</td>
-                                            <td className="py-3 px-4 text-gray-600">{store.address}</td>
-                                            <td className="py-3 px-4 text-gray-600">{getManagerName(store.managerId)}</td>
+                                    {paginatedStores.map((store) => (
+                                        <tr key={store.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                            <td className="py-3 px-4 font-medium text-gray-900 dark:text-white">{store.name}</td>
+                                            <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{store.address}</td>
+                                            <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{getManagerName(store.managerId)}</td>
                                             <td className="py-3 px-4">
                                                 <button
                                                     onClick={() => handleToggleActive(store)}
@@ -179,7 +193,7 @@ export default function AdminStoresPage() {
                                                     {store.isActive ? 'Hoạt động' : 'Tạm dừng'}
                                                 </button>
                                             </td>
-                                            <td className="py-3 px-4 text-gray-600">{formatDate(store.createdAt)}</td>
+                                            <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{formatDate(store.createdAt)}</td>
                                             <td className="py-3 px-4">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button
@@ -207,7 +221,7 @@ export default function AdminStoresPage() {
 
                         {/* Mobile Grid View */}
                         <div className="md:hidden grid grid-cols-1 gap-4 p-4 bg-gray-50 dark:bg-gray-900/50">
-                            {filteredStores.map((store) => (
+                            {paginatedStores.map((store) => (
                                 <div key={store.id} className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
                                     <div className="flex justify-between items-start mb-3">
                                         <div>
@@ -261,6 +275,34 @@ export default function AdminStoresPage() {
                             ))}
                         </div>
                     </>
+                )}
+
+                {/* Pagination Controls */}
+                {filteredStores.length > 0 && totalPages > 1 && (
+                    <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50">
+                        <div className="text-sm text-gray-600">
+                            Hiển thị {startIndex + 1}-{Math.min(endIndex, filteredStores.length)} trong tổng số {filteredStores.length} cửa hàng
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                                <ChevronLeft className="w-5 h-5" />
+                            </button>
+                            <span className="text-sm font-medium text-gray-700">
+                                Trang {currentPage} / {totalPages}
+                            </span>
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                disabled={currentPage === totalPages}
+                                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                                <ChevronRight className="w-5 h-5" />
+                            </button>
+                        </div>
+                    </div>
                 )}
             </div>
 

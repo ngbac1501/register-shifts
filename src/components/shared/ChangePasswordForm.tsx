@@ -3,13 +3,12 @@
 import { useState } from 'react';
 import { auth } from '@/lib/firebase';
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
-import { Lock, Save, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Lock, Save, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 
 export default function ChangePasswordForm() {
     const [loading, setLoading] = useState(false);
-    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-    const [showNewPassword, setShowNewPassword] = useState(false);
     const [passwords, setPasswords] = useState({
         currentPassword: '',
         newPassword: '',
@@ -85,71 +84,35 @@ export default function ChangePasswordForm() {
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Mật khẩu hiện tại
-                    </label>
-                    <div className="relative">
-                        <input
-                            type={showCurrentPassword ? "text" : "password"}
-                            name="currentPassword"
-                            value={passwords.currentPassword}
-                            onChange={handleChange}
-                            required
-                            className="w-full pl-4 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                            placeholder="Nhập mật khẩu hiện tại"
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                        >
-                            {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                    </div>
-                </div>
+                <PasswordInput
+                    label="Mật khẩu hiện tại"
+                    name="currentPassword"
+                    value={passwords.currentPassword}
+                    onChange={handleChange}
+                    required
+                    placeholder="Nhập mật khẩu hiện tại"
+                />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Mật khẩu mới
-                        </label>
-                        <div className="relative">
-                            <input
-                                type={showNewPassword ? "text" : "password"}
-                                name="newPassword"
-                                value={passwords.newPassword}
-                                onChange={handleChange}
-                                required
-                                minLength={6}
-                                className="w-full pl-4 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                placeholder="Mật khẩu mới (tối thiểu 6 ký tự)"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowNewPassword(!showNewPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                            >
-                                {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                            </button>
-                        </div>
-                    </div>
+                    <PasswordInput
+                        label="Mật khẩu mới"
+                        name="newPassword"
+                        value={passwords.newPassword}
+                        onChange={handleChange}
+                        required
+                        minLength={6}
+                        placeholder="Mật khẩu mới (tối thiểu 6 ký tự)"
+                    />
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Xác nhận mật khẩu mới
-                        </label>
-                        <input
-                            type="password"
-                            name="confirmPassword"
-                            value={passwords.confirmPassword}
-                            onChange={handleChange}
-                            required
-                            minLength={6}
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                            placeholder="Nhập lại mật khẩu mới"
-                        />
-                    </div>
+                    <PasswordInput
+                        label="Xác nhận mật khẩu mới"
+                        name="confirmPassword"
+                        value={passwords.confirmPassword}
+                        onChange={handleChange}
+                        required
+                        minLength={6}
+                        placeholder="Nhập lại mật khẩu mới"
+                    />
                 </div>
 
                 <div className="pt-2 flex justify-end">

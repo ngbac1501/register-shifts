@@ -152,3 +152,295 @@ export interface ChartDataPoint {
   value: number;
   [key: string]: string | number;
 }
+
+// ==================== PHASE 1: LEAVE MANAGEMENT ====================
+
+// Leave Types
+export type LeaveType = 'annual' | 'sick' | 'personal' | 'unpaid';
+export type LeaveStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
+
+// Leave Interface
+export interface Leave {
+  id: string;
+  employeeId: string;
+  storeId: string;
+  type: LeaveType;
+  startDate: Timestamp | Date;
+  endDate: Timestamp | Date;
+  totalDays: number;
+  reason: string;
+  status: LeaveStatus;
+  approvedBy?: string; // managerId or adminId
+  rejectedReason?: string;
+  createdAt: Timestamp | Date;
+  updatedAt?: Timestamp | Date;
+}
+
+// Leave with populated data
+export interface LeaveWithDetails extends Leave {
+  employee?: User;
+  store?: Store;
+  approver?: User;
+}
+
+// Leave Balance
+export interface LeaveBalance {
+  employeeId: string;
+  year: number;
+  annual: {
+    total: number;
+    used: number;
+    remaining: number;
+  };
+  sick: {
+    total: number;
+    used: number;
+    remaining: number;
+  };
+  personal: {
+    total: number;
+    used: number;
+    remaining: number;
+  };
+}
+
+// Leave Form Data
+export interface LeaveFormData {
+  type: LeaveType;
+  startDate: Date;
+  endDate: Date;
+  reason: string;
+}
+
+// ==================== PHASE 1: NOTIFICATIONS ====================
+
+// Notification Types
+export type NotificationType =
+  | 'schedule_approved'
+  | 'schedule_rejected'
+  | 'shift_reminder'
+  | 'swap_request'
+  | 'swap_approved'
+  | 'swap_rejected'
+  | 'leave_approved'
+  | 'leave_rejected'
+  | 'shift_assigned'
+  | 'training_enrolled'
+  | 'training_completed';
+
+// Notification Interface
+export interface Notification {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  isRead: boolean;
+  link?: string;
+  metadata?: Record<string, any>;
+  createdAt: Timestamp | Date;
+}
+
+// Notification Preferences
+export interface NotificationPreferences {
+  userId: string;
+  email: boolean;
+  push: boolean;
+  inApp: boolean;
+  shiftReminder: boolean;
+  shiftReminderHours: number; // Hours before shift
+  leaveUpdates: boolean;
+  swapRequests: boolean;
+  trainingUpdates: boolean;
+}
+
+// ==================== PHASE 2: ENHANCED SHIFT SWAPS ====================
+
+// Enhanced Shift Swap Types
+export type ShiftSwapType = 'direct' | 'marketplace';
+
+// Enhanced Shift Swap Interface
+export interface ShiftSwapEnhanced {
+  id: string;
+  type: ShiftSwapType;
+  fromEmployeeId: string;
+  toEmployeeId?: string; // Optional for marketplace
+  scheduleId: string;
+  shiftDetails: {
+    date: Timestamp | Date;
+    shiftName: string;
+    startTime: string;
+    endTime: string;
+  };
+  reason?: string;
+  status: SwapStatus;
+  isMarketplace: boolean;
+  interestedEmployees?: string[]; // For marketplace
+  createdAt: Timestamp | Date;
+  approvedBy?: string;
+  expiresAt?: Timestamp | Date; // Auto-cancel if not claimed
+  updatedAt?: Timestamp | Date;
+}
+
+// Shift Swap with populated data
+export interface ShiftSwapEnhancedWithDetails extends ShiftSwapEnhanced {
+  fromEmployee?: User;
+  toEmployee?: User;
+  schedule?: ScheduleWithDetails;
+  interestedEmployeeDetails?: User[];
+}
+
+// ==================== PHASE 3: SKILLS & TRAINING ====================
+
+// Skill Types
+export type SkillCategory = 'technical' | 'soft' | 'management';
+export type SkillLevel = 'beginner' | 'intermediate' | 'advanced' | 'expert';
+
+// Skill Interface
+export interface Skill {
+  id: string;
+  name: string;
+  description: string;
+  category: SkillCategory;
+  isActive: boolean;
+  createdAt: Timestamp | Date;
+}
+
+// Employee Skill
+export interface EmployeeSkill {
+  id: string;
+  employeeId: string;
+  skillId: string;
+  level: SkillLevel;
+  certifiedBy?: string; // managerId or adminId
+  certifiedAt?: Timestamp | Date;
+  expiresAt?: Timestamp | Date; // For certifications
+  notes?: string;
+}
+
+// Employee Skill with populated data
+export interface EmployeeSkillWithDetails extends EmployeeSkill {
+  employee?: User;
+  skill?: Skill;
+  certifier?: User;
+}
+
+// Training Program Types
+export type TrainingStatus = 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
+export type EnrollmentStatus = 'enrolled' | 'completed' | 'dropped';
+
+// Training Program
+export interface TrainingProgram {
+  id: string;
+  title: string;
+  description: string;
+  skillId: string;
+  duration: number; // hours
+  instructor?: string;
+  maxParticipants: number;
+  currentParticipants: number;
+  status: TrainingStatus;
+  startDate: Timestamp | Date;
+  endDate: Timestamp | Date;
+  createdBy: string; // adminId
+  createdAt: Timestamp | Date;
+  updatedAt?: Timestamp | Date;
+}
+
+// Training Enrollment
+export interface TrainingEnrollment {
+  id: string;
+  programId: string;
+  employeeId: string;
+  status: EnrollmentStatus;
+  progress: number; // 0-100
+  enrolledAt: Timestamp | Date;
+  completedAt?: Timestamp | Date;
+  certificateUrl?: string;
+  notes?: string;
+}
+
+// Training with populated data
+export interface TrainingProgramWithDetails extends TrainingProgram {
+  skill?: Skill;
+  creator?: User;
+  enrollments?: TrainingEnrollment[];
+}
+
+export interface TrainingEnrollmentWithDetails extends TrainingEnrollment {
+  program?: TrainingProgramWithDetails;
+  employee?: User;
+}
+
+// ==================== ANALYTICS & REPORTS ====================
+
+// Analytics Data Types
+export interface AnalyticsData {
+  period: string; // 'day' | 'week' | 'month' | 'year'
+  startDate: Date;
+  endDate: Date;
+  totalHours: number;
+  totalCost: number;
+  totalShifts: number;
+  averageHoursPerEmployee: number;
+  attendanceRate: number;
+  leaveRate: number;
+}
+
+export interface StoreAnalytics extends AnalyticsData {
+  storeId: string;
+  storeName: string;
+  employeeCount: number;
+  topPerformers: {
+    employeeId: string;
+    employeeName: string;
+    totalHours: number;
+  }[];
+}
+
+export interface EmployeeAnalytics {
+  employeeId: string;
+  employeeName: string;
+  totalHours: number;
+  totalShifts: number;
+  completedShifts: number;
+  cancelledShifts: number;
+  lateCount: number;
+  earlyLeaveCount: number;
+  leavesTaken: number;
+  attendanceRate: number;
+  estimatedSalary: number;
+}
+
+// Report Types
+export interface PayrollReport {
+  employeeId: string;
+  employeeName: string;
+  totalHours: number;
+  regularHours: number;
+  overtimeHours: number;
+  hourlyRate: number;
+  regularPay: number;
+  overtimePay: number;
+  totalPay: number;
+  deductions: number;
+  netPay: number;
+  period: {
+    startDate: Date;
+    endDate: Date;
+  };
+}
+
+// ==================== PWA ====================
+
+// PWA Install Prompt
+export interface PWAInstallPrompt {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
+// Service Worker Message
+export interface ServiceWorkerMessage {
+  type: 'SKIP_WAITING' | 'CLIENTS_CLAIM' | 'CACHE_UPDATED';
+  payload?: any;
+}

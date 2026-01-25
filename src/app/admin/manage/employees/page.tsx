@@ -1,17 +1,40 @@
 'use client';
 
 import { useState } from 'react';
-import { useAdminStore } from '@/contexts/AdminStoreContext';
+import { useStore } from '@/contexts/StoreContext';
 import { StoreSelector } from '@/components/admin/StoreSelector';
 import { useCollection } from '@/hooks/use-firestore';
 import { User, Schedule } from '@/types';
-import { where, updateDoc, doc, Timestamp, addDoc, collection, query, getDocs } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Users, Search, Clock, Calendar, Edit, UserPlus, X, Phone, Mail, DollarSign, Filter, Loader2 } from 'lucide-react';
+import { PasswordInput } from '@/components/ui/PasswordInput';
+import { where, doc, deleteDoc, updateDoc, Timestamp, collection, query, getDocs, setDoc } from 'firebase/firestore';
+import { db, createUserInSecondaryApp } from '@/lib/firebase';
+import {
+    Search,
+    Filter,
+    MoreVertical,
+    UserPlus,
+    Mail,
+    Phone,
+    MapPin,
+    Calendar,
+    Edit,
+    Trash2,
+    Shield,
+    Clock,
+    DollarSign,
+    CheckCircle,
+    XCircle,
+    Users,
+    Loader2,
+    X,
+    Lock
+} from 'lucide-react';
 import { getEmployeeTypeLabel, formatCurrency } from '@/lib/utils';
+import toast from 'react-hot-toast';
+import { DeleteConfirmationModal } from '@/components/shared/DeleteConfirmationModal';
 
 export default function AdminEmployeesPage() {
-    const { selectedStoreId } = useAdminStore();
+    const { selectedStoreId } = useStore();
     const [searchTerm, setSearchTerm] = useState('');
     const [editingEmployee, setEditingEmployee] = useState<User | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -29,6 +52,7 @@ export default function AdminEmployeesPage() {
     const [addFormData, setAddFormData] = useState({
         displayName: '',
         email: '',
+        password: '',
         phone: '',
         employeeType: 'fulltime' as 'fulltime' | 'parttime',
         hourlyRate: 0,
@@ -112,6 +136,7 @@ export default function AdminEmployeesPage() {
         setAddFormData({
             displayName: '',
             email: '',
+            password: '',
             phone: '',
             employeeType: 'fulltime',
             hourlyRate: 0,
@@ -127,6 +152,13 @@ export default function AdminEmployeesPage() {
 
         setIsSubmitting(true);
         try {
+            // Validate password
+            if (!addFormData.password || addFormData.password.length < 6) {
+                alert('Mật khẩu phải có ít nhất 6 ký tự');
+                setIsSubmitting(false);
+                return;
+            }
+
             const q = query(
                 collection(db, 'users'),
                 where('email', '==', addFormData.email)
@@ -138,7 +170,11 @@ export default function AdminEmployeesPage() {
                 return;
             }
 
-            await addDoc(collection(db, 'users'), {
+            // Create Firebase Auth user
+            const firebaseUser = await createUserInSecondaryApp(addFormData.email, addFormData.password);
+
+            // Create Firestore user document
+            await setDoc(doc(db, 'users', firebaseUser.uid), {
                 displayName: addFormData.displayName,
                 email: addFormData.email,
                 phone: addFormData.phone,
@@ -148,13 +184,17 @@ export default function AdminEmployeesPage() {
                 storeId: selectedStoreId,
                 createdAt: Timestamp.now(),
                 photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(addFormData.displayName)}&background=random`,
-                isActive: true,
             });
 
             handleCloseAddModal();
-        } catch (error) {
+            toast.success('Đã thêm nhân viên mới thành công');
+        } catch (error: any) {
             console.error('Error adding employee:', error);
-            alert('Có lỗi xảy ra khi thêm nhân viên');
+            if (error?.code === 'auth/email-already-in-use' || error?.message?.includes('auth/email-already-in-use')) {
+                alert('Email này đã được đăng ký tài khoản (do dữ liệu cũ còn tồn tại trên server Auth). Vui lòng sử dụng email khác.');
+            } else {
+                alert('Có lỗi xảy ra khi thêm nhân viên: ' + (error.message || 'Lỗi không xác định'));
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -356,23 +396,37 @@ export default function AdminEmployeesPage() {
                                     </div>
 
                                     {isAddModalOpen && (
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                                Email <span className="text-red-500">*</span>
-                                            </label>
-                                            <input
-                                                type="email"
-                                                required
-                                                value={addFormData.email}
-                                                onChange={(e) => setAddFormData({ ...addFormData, email: e.target.value })}
-                                                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all dark:text-white"
-                                                placeholder="email@example.com"
-                                            />
-                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 flex items-center gap-1">
-                                                <Mail className="w-3 h-3" />
-                                                Email này được dùng để đăng nhập
-                                            </p>
-                                        </div>
+                                        <>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                    Email <span className="text-red-500">*</span>
+                                                </label>
+                                                <input
+                                                    type="email"
+                                                    required
+                                                    value={addFormData.email}
+                                                    onChange={(e) => setAddFormData({ ...addFormData, email: e.target.value })}
+                                                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all dark:text-white"
+                                                    placeholder="email@example.com"
+                                                />
+                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 flex items-center gap-1">
+                                                    <Mail className="w-3 h-3" />
+                                                    Email này được dùng để đăng nhập
+                                                </p>
+                                            </div>
+
+                                            <div>
+                                                <PasswordInput
+                                                    label="Mật khẩu"
+                                                    required
+                                                    minLength={6}
+                                                    value={addFormData.password}
+                                                    onChange={(e) => setAddFormData({ ...addFormData, password: e.target.value })}
+                                                    placeholder="••••••••"
+                                                    leftIcon={<Lock className="w-4 h-4" />}
+                                                />
+                                            </div>
+                                        </>
                                     )}
 
                                     <div>

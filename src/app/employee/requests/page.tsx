@@ -63,53 +63,53 @@ export default function EmployeeRequestsPage() {
     return (
         <div>
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Ca đã đăng ký</h1>
-                <p className="text-gray-600">Quản lý và theo dõi trạng thái các ca làm việc đã đăng ký</p>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Ca đã đăng ký</h1>
+                <p className="text-gray-600 dark:text-gray-400">Quản lý và theo dõi trạng thái các ca làm việc đã đăng ký</p>
             </div>
 
             {/* Filters */}
-            <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+            <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-none">
                 <button
                     onClick={() => setFilterStatus('all')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${filterStatus === 'all'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                    className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${filterStatus === 'all'
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30'
+                        : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
                         }`}
                 >
                     Tất cả
                 </button>
                 <button
                     onClick={() => setFilterStatus('pending')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2 ${filterStatus === 'pending'
-                        ? 'bg-yellow-500 text-white'
-                        : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                    className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex items-center gap-2 ${filterStatus === 'pending'
+                        ? 'bg-yellow-500 text-white shadow-md shadow-yellow-500/30'
+                        : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
                         }`}
                 >
                     <Clock className="w-4 h-4" /> Chờ duyệt
                 </button>
                 <button
                     onClick={() => setFilterStatus('approved')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2 ${filterStatus === 'approved'
-                        ? 'bg-green-600 text-white'
-                        : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                    className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex items-center gap-2 ${filterStatus === 'approved'
+                        ? 'bg-green-600 text-white shadow-md shadow-green-500/30'
+                        : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
                         }`}
                 >
                     <CheckCircle className="w-4 h-4" /> Đã duyệt
                 </button>
                 <button
                     onClick={() => setFilterStatus('completed')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2 ${filterStatus === 'completed'
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                    className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex items-center gap-2 ${filterStatus === 'completed'
+                        ? 'bg-purple-600 text-white shadow-md shadow-purple-500/30'
+                        : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
                         }`}
                 >
                     <CheckCircle className="w-4 h-4" /> Đã hoàn thành
                 </button>
                 <button
                     onClick={() => setFilterStatus('rejected')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2 ${filterStatus === 'rejected'
-                        ? 'bg-red-600 text-white'
-                        : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                    className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex items-center gap-2 ${filterStatus === 'rejected'
+                        ? 'bg-red-600 text-white shadow-md shadow-red-500/30'
+                        : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
                         }`}
                 >
                     <XCircle className="w-4 h-4" /> Từ chối
@@ -117,21 +117,21 @@ export default function EmployeeRequestsPage() {
             </div>
 
             {/* List */}
-            <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border border-gray-100 dark:border-gray-700">
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-gray-50 border-b border-gray-200">
+                        <thead className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
                             <tr>
-                                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600">Ngày làm việc</th>
-                                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600">Ca làm việc</th>
-                                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600">Trạng thái</th>
-                                <th className="text-right py-4 px-6 text-sm font-semibold text-gray-600">Thao tác</th>
+                                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600 dark:text-gray-300">Ngày làm việc</th>
+                                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600 dark:text-gray-300">Ca làm việc</th>
+                                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600 dark:text-gray-300">Trạng thái</th>
+                                <th className="text-right py-4 px-6 text-sm font-semibold text-gray-600 dark:text-gray-300">Thao tác</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200">
+                        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                             {filteredSchedules.length === 0 ? (
                                 <tr>
-                                    <td colSpan={4} className="py-8 text-center text-gray-500">
+                                    <td colSpan={4} className="py-8 text-center text-gray-500 dark:text-gray-400">
                                         Không tìm thấy ca làm việc nào
                                     </td>
                                 </tr>
@@ -143,14 +143,14 @@ export default function EmployeeRequestsPage() {
                                     const isRejected = schedule.status === 'rejected';
 
                                     return (
-                                        <tr key={schedule.id} className="hover:bg-gray-50 transition-colors">
-                                            <td className="py-4 px-6 text-sm text-gray-900">
-                                                <div className="font-medium">{format(date, 'dd/MM/yyyy')}</div>
-                                                <div className="text-gray-500 text-xs">{format(date, 'EEEE', { locale: vi })}</div>
+                                        <tr key={schedule.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                            <td className="py-4 px-6 text-sm">
+                                                <div className="font-medium text-gray-900 dark:text-white">{format(date, 'dd/MM/yyyy')}</div>
+                                                <div className="text-gray-500 dark:text-gray-400 text-xs">{format(date, 'EEEE', { locale: vi })}</div>
                                             </td>
                                             <td className="py-4 px-6">
-                                                <div className="font-medium text-gray-900">{shift.name}</div>
-                                                <div className="text-sm text-gray-500">{shift.time}</div>
+                                                <div className="font-medium text-gray-900 dark:text-white">{shift.name}</div>
+                                                <div className="text-sm text-gray-500 dark:text-gray-400">{shift.time}</div>
                                             </td>
                                             <td className="py-4 px-6">
                                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(schedule.status)} bg-opacity-10`}>
@@ -182,16 +182,16 @@ export default function EmployeeRequestsPage() {
 
             {/* Delete Confirmation Modal */}
             {isDeleteModalOpen && deletingSchedule && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-slideUp">
                         <div className="flex items-center gap-3 mb-4">
-                            <div className="p-3 bg-red-100 rounded-full">
-                                <AlertTriangle className="w-6 h-6 text-red-600" />
+                            <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full">
+                                <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
                             </div>
-                            <h2 className="text-xl font-bold text-gray-900">Xác nhận hủy đăng ký</h2>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Xác nhận hủy đăng ký</h2>
                         </div>
-                        <p className="text-gray-600 mb-6">
-                            Bạn có chắc chắn muốn hủy đăng ký ca <span className="font-semibold">{getShiftInfo(deletingSchedule.shiftId).name}</span> vào ngày <span className="font-semibold">{formatDate(deletingSchedule.date, 'dd/MM/yyyy')}</span>?
+                        <p className="text-gray-600 dark:text-gray-400 mb-6">
+                            Bạn có chắc chắn muốn hủy đăng ký ca <span className="font-semibold text-gray-900 dark:text-white">{getShiftInfo(deletingSchedule.shiftId).name}</span> vào ngày <span className="font-semibold text-gray-900 dark:text-white">{formatDate(deletingSchedule.date, 'dd/MM/yyyy')}</span>?
                         </p>
                         <div className="flex gap-3">
                             <button
@@ -199,7 +199,7 @@ export default function EmployeeRequestsPage() {
                                     setIsDeleteModalOpen(false);
                                     setDeletingSchedule(null);
                                 }}
-                                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                             >
                                 Không
                             </button>

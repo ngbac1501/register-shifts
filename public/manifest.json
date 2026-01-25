@@ -1,0 +1,66 @@
+{
+    "name": "Epatta Coffee & Tea - Shift Management",
+    "short_name": "Epatta",
+    "description": "Hệ thống quản lý ca làm việc cho Epatta Coffee & Tea",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#7c3aed",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "business",
+        "productivity"
+    ],
+    "shortcuts": [
+        {
+            "name": "Lịch làm việc",
+            "short_name": "Lịch",
+            "description": "Xem lịch làm việc của bạn",
+            "url": "/employee/schedule",
+            "icons": [
+                {
+                    "src": "/icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Đăng ký ca",
+            "short_name": "Đăng ký",
+            "description": "Đăng ký ca làm việc mới",
+            "url": "/employee/register",
+            "icons": [
+                {
+                    "src": "/icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Nghỉ phép",
+            "short_name": "Nghỉ phép",
+            "description": "Quản lý nghỉ phép",
+            "url": "/employee/leaves",
+            "icons": [
+                {
+                    "src": "/icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        }
+    ]
+}

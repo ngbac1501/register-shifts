@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useCollection } from '@/hooks/use-firestore';
 import { User, Schedule } from '@/types';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 import { where, updateDoc, doc, Timestamp, setDoc, collection, query, getDocs } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { createUserInSecondaryApp } from '@/lib/firebase';
@@ -409,23 +410,15 @@ export default function ManagerEmployeesPage() {
                                             </div>
 
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                                    Mật khẩu <span className="text-red-500">*</span>
-                                                </label>
-                                                <div className="relative">
-                                                    <input
-                                                        type="password"
-                                                        required
-                                                        minLength={6}
-                                                        value={addFormData.password}
-                                                        onChange={(e) => setAddFormData({ ...addFormData, password: e.target.value })}
-                                                        className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all dark:text-white"
-                                                        placeholder="Tối thiểu 6 ký tự"
-                                                    />
-                                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                                                        <Lock className="w-4 h-4" />
-                                                    </div>
-                                                </div>
+                                                <PasswordInput
+                                                    label="Mật khẩu"
+                                                    required
+                                                    minLength={6}
+                                                    value={addFormData.password}
+                                                    onChange={(e) => setAddFormData({ ...addFormData, password: e.target.value })}
+                                                    placeholder="Tối thiểu 6 ký tự"
+                                                    leftIcon={<Lock className="w-4 h-4" />}
+                                                />
                                             </div>
                                         </div>
                                     )}

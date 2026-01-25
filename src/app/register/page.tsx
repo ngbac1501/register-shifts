@@ -13,6 +13,7 @@ import { useCollection } from '@/hooks/use-firestore';
 import { Store } from '@/types';
 import { where } from 'firebase/firestore';
 import { User, Mail, Lock, ArrowRight, Loader2, Store as StoreIcon } from 'lucide-react';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 
 // Schema validation
 const signUpSchema = z.object({
@@ -90,21 +91,18 @@ export default function RegisterPage() {
       </div>
 
       <div className="w-full max-w-md relative z-10">
-        {/* Logo & Title */}
+        {/* Logo */}
         <div className="text-center mb-8 animate-fadeIn">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white dark:bg-gray-800 rounded-3xl mb-6 shadow-2xl transform hover:scale-105 transition-all duration-300 overflow-hidden">
+          <div className="inline-flex items-center justify-center w-32 h-32 bg-white dark:bg-gray-800 rounded-3xl mb-6 shadow-2xl transform hover:scale-105 transition-all duration-300 overflow-hidden">
             <Image
               src="/logoEpatta.png"
               alt="Epatta Logo"
-              width={80}
-              height={80}
-              className="w-full h-full object-contain p-2"
+              width={128}
+              height={128}
+              className="w-full h-full object-contain p-3"
               priority
             />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
-            Đăng ký tài khoản
-          </h1>
           <p className="text-gray-600 dark:text-gray-400">Dành cho nhân viên cửa hàng</p>
         </div>
 
@@ -200,48 +198,24 @@ export default function RegisterPage() {
             </div>
 
             {/* Password */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 pl-1">
-                Mật khẩu
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />
-                </div>
-                <input
-                  {...register('password')}
-                  type="password"
-                  id="password"
-                  className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 dark:focus:border-amber-500 transition-all outline-none dark:text-white"
-                  placeholder="••••••••"
-                />
-              </div>
-              {errors.password && (
-                <p className="mt-2 text-sm text-red-500 pl-1">{errors.password.message}</p>
-              )}
-            </div>
+            <PasswordInput
+              {...register('password')}
+              id="password"
+              label="Mật khẩu"
+              placeholder="••••••••"
+              leftIcon={<Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />}
+              error={errors.password?.message}
+            />
 
             {/* Confirm Password */}
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 pl-1">
-                Nhập lại mật khẩu
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />
-                </div>
-                <input
-                  {...register('confirmPassword')}
-                  type="password"
-                  id="confirmPassword"
-                  className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 dark:focus:border-amber-500 transition-all outline-none dark:text-white"
-                  placeholder="••••••••"
-                />
-              </div>
-              {errors.confirmPassword && (
-                <p className="mt-2 text-sm text-red-500 pl-1">{errors.confirmPassword.message}</p>
-              )}
-            </div>
+            <PasswordInput
+              {...register('confirmPassword')}
+              id="confirmPassword"
+              label="Nhập lại mật khẩu"
+              placeholder="••••••••"
+              leftIcon={<Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />}
+              error={errors.confirmPassword?.message}
+            />
 
             {/* Submit Button */}
             <button

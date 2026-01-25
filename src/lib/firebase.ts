@@ -1,5 +1,5 @@
 import { initializeApp, getApps, deleteApp } from "firebase/app";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { firebaseConfig } from "@/config/firebase";
 
@@ -26,3 +26,6 @@ export async function createUserInSecondaryApp(email: string, pass: string) {
     await deleteApp(secondaryApp);
   }
 }
+
+// Google Auth Provider
+export const googleProvider = new GoogleAuthProvider();

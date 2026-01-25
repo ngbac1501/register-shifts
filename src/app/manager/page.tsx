@@ -8,6 +8,21 @@ import { Calendar, Users, Clock, CheckCircle, ChevronRight, AlertCircle, Briefca
 import { format, isSameDay, isWithinInterval, parse, startOfDay, addDays, subDays } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import Link from 'next/link';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  Cell,
+  PieChart,
+  Pie
+} from 'recharts';
 
 export default function ManagerDashboard() {
   const { user } = useAuth();
@@ -82,6 +97,50 @@ export default function ManagerDashboard() {
   upcomingShifts.sort((a, b) => {
     if (!a.startTime || !b.startTime) return 0;
     return a.startTime.localeCompare(b.startTime);
+  });
+
+  // --- Chart Data Calculations ---
+  // 1. Weekly Shift Status Distribution
+  const last7Days = Array.from({ length: 7 }, (_, i) => subDays(today, 6 - i));
+  const weeklyStatusData = last7Days.map(date => {
+    const daySchedules = schedules?.filter(s => isSameDay(s.date instanceof Date ? s.date : s.date.toDate(), date)) || [];
+    return {
+      name: format(date, 'dd/MM'),
+      'Đã duyệt': daySchedules.filter(s => s.status === 'approved').length,
+      'Chờ duyệt': daySchedules.filter(s => s.status === 'pending').length,
+      'Từ chối': daySchedules.filter(s => s.status === 'rejected').length,
+    };
+  });
+
+  // 2. Labor Hours Trend
+  const laborHoursData = last7Days.map(date => {
+    const daySchedules = schedules?.filter(s =>
+      isSameDay(s.date instanceof Date ? s.date : s.date.toDate(), date) && s.status === 'approved'
+    ) || [];
+
+    let totalMinutes = 0;
+    daySchedules.forEach(s => {
+      let startStr = s.startTime;
+      let endStr = s.endTime;
+
+      if (!startStr || !endStr) {
+        const shift = shifts?.find(sh => sh.id === s.shiftId);
+        startStr = shift?.startTime;
+        endStr = shift?.endTime;
+      }
+
+      if (startStr && endStr) {
+        const start = parse(startStr, 'HH:mm', today);
+        let end = parse(endStr, 'HH:mm', today);
+        if (end < start) end = addDays(end, 1);
+        totalMinutes += (end.getTime() - start.getTime()) / (1000 * 60);
+      }
+    });
+
+    return {
+      name: format(date, 'eee', { locale: vi }),
+      hours: Math.round(totalMinutes / 60 * 10) / 10,
+    };
   });
 
   const stats = [
@@ -205,7 +264,70 @@ export default function ManagerDashboard() {
         </div>
       </div>
 
-      {/* --- 2. Enhanced Stats Grid --- */}
+      {/* --- 2. Professional Statistics Charts --- */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Weekly Status Bar Chart */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Trạng thái ca làm việc (7 ngày qua)</h3>
+            <div className="flex gap-4 text-xs">
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-green-500 rounded-sm"></div> <span className="text-gray-500">Đã duyệt</span></div>
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-blue-500 rounded-sm"></div> <span className="text-gray-500">Chờ duyệt</span></div>
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-red-500 rounded-sm"></div> <span className="text-gray-500">Từ chối</span></div>
+            </div>
+          </div>
+          <div className="h-[300px] w-full text-xs">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={weeklyStatusData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6B7280' }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280' }} />
+                <Tooltip
+                  cursor={{ fill: '#f3f4f6' }}
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                />
+                <Bar dataKey="Đã duyệt" stackId="a" fill="#10B981" radius={[0, 0, 0, 0]} />
+                <Bar dataKey="Chờ duyệt" stackId="a" fill="#3B82F6" radius={[0, 0, 0, 0]} />
+                <Bar dataKey="Từ chối" stackId="a" fill="#EF4444" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Labor Hours Area Chart */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Tổng giờ làm việc trong tuần</h3>
+          <div className="h-[300px] w-full text-xs">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={laborHoursData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorHours" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6B7280' }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280' }} />
+                <Tooltip
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="hours"
+                  stroke="#8B5CF6"
+                  strokeWidth={3}
+                  fillOpacity={1}
+                  fill="url(#colorHours)"
+                  name="Tổng giờ"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* --- 3. Classic Stats Grid --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
           <div

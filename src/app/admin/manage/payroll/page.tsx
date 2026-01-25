@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useAdminStore } from '@/contexts/AdminStoreContext';
+import { useStore } from '@/contexts/StoreContext';
 import { StoreSelector } from '@/components/admin/StoreSelector';
 import { useCollection, useDocument } from '@/hooks/use-firestore';
 import { Schedule, Shift, User, Store } from '@/types';
@@ -14,7 +14,7 @@ import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
 export default function AdminPayrollPage() {
-    const { selectedStoreId } = useAdminStore();
+    const { selectedStoreId } = useStore();
     const [selectedMonth, setSelectedMonth] = useState(new Date());
 
     const { data: store } = useDocument<Store>('stores', selectedStoreId || '');
@@ -104,17 +104,17 @@ export default function AdminPayrollPage() {
             </div>
 
             {/* Month Selector */}
-            <div className="bg-white rounded-xl shadow-md p-4 mb-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 mb-6 border border-gray-100 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                     <button
                         onClick={handlePreviousMonth}
-                        className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                        className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
                     >
                         ← Tháng trước
                     </button>
 
                     <div className="text-center">
-                        <h2 className="text-xl font-semibold text-gray-900">
+                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                             {format(selectedMonth, 'MMMM yyyy', { locale: vi })}
                         </h2>
                     </div>
@@ -128,7 +128,7 @@ export default function AdminPayrollPage() {
                         </button>
                         <button
                             onClick={handleNextMonth}
-                            className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                            className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
                         >
                             Tháng sau →
                         </button>
@@ -138,14 +138,14 @@ export default function AdminPayrollPage() {
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                <div className="bg-white rounded-xl shadow-md p-6">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
                     <div className="flex items-center gap-3 mb-3">
-                        <div className="p-3 bg-orange-100 rounded-lg">
-                            <DollarSign className="w-6 h-6 text-orange-600" />
+                        <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                            <DollarSign className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                         </div>
                         <div>
-                            <p className="text-sm text-gray-600">Tổng chi phí lương</p>
-                            <p className="text-2xl font-bold text-gray-900">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Tổng chi phí lương</p>
+                            <p className="text-2xl font-bold text-gray-900 dark:text-white">
                                 {formatCurrency(currentPayroll.totalSalary)}
                             </p>
                         </div>
@@ -163,47 +163,47 @@ export default function AdminPayrollPage() {
                     )}
                 </div>
 
-                <div className="bg-white rounded-xl shadow-md p-6">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
                     <div className="flex items-center gap-3">
-                        <div className="p-3 bg-purple-100 rounded-lg">
-                            <Clock className="w-6 h-6 text-purple-600" />
+                        <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                            <Clock className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                         </div>
                         <div>
-                            <p className="text-sm text-gray-600">Tổng giờ làm</p>
-                            <p className="text-2xl font-bold text-purple-600">{currentPayroll.totalHours}h</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Tổng giờ làm</p>
+                            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{currentPayroll.totalHours}h</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-md p-6">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
                     <div className="flex items-center gap-3">
-                        <div className="p-3 bg-blue-100 rounded-lg">
-                            <Calendar className="w-6 h-6 text-blue-600" />
+                        <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                            <Calendar className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div>
-                            <p className="text-sm text-gray-600">Tổng ca hoàn thành</p>
-                            <p className="text-2xl font-bold text-blue-600">{currentPayroll.totalShifts}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Tổng ca hoàn thành</p>
+                            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{currentPayroll.totalShifts}</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-md p-6">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
                     <div className="flex items-center gap-3">
-                        <div className="p-3 bg-green-100 rounded-lg">
-                            <Users className="w-6 h-6 text-green-600" />
+                        <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                            <Users className="w-6 h-6 text-green-600 dark:text-green-400" />
                         </div>
                         <div>
-                            <p className="text-sm text-gray-600">Số nhân viên</p>
-                            <p className="text-2xl font-bold text-green-600">{currentPayroll.employees.length}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Số nhân viên</p>
+                            <p className="text-2xl font-bold text-green-600 dark:text-green-400">{currentPayroll.employees.length}</p>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Payroll Table */}
-            <div className="bg-white rounded-xl shadow-md overflow-hidden">
-                <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-                    <h2 className="text-xl font-semibold text-gray-900">Chi tiết lương nhân viên</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-100 dark:border-gray-700">
+                <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Chi tiết lương nhân viên</h2>
                     <button
                         onClick={handleExport}
                         className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
@@ -218,60 +218,60 @@ export default function AdminPayrollPage() {
             {/* Desktop Table */}
             <div className="hidden md:block overflow-x-auto">
                 <table className="w-full">
-                    <thead className="bg-gray-50 border-b border-gray-200">
+                    <thead className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
                         <tr>
-                            <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">STT</th>
-                            <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">Nhân viên</th>
-                            <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">Loại NV</th>
-                            <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700">Lương/giờ</th>
-                            <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700">Số ca</th>
-                            <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700">Tổng giờ</th>
-                            <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700">Phụ cấp đêm</th>
-                            <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700">Tổng lương</th>
+                            <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">STT</th>
+                            <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">Nhân viên</th>
+                            <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">Loại NV</th>
+                            <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">Lương/giờ</th>
+                            <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">Số ca</th>
+                            <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">Tổng giờ</th>
+                            <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">Phụ cấp đêm</th>
+                            <th className="text-right py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">Tổng lương</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                         {currentPayroll.employees.map((emp, index) => (
-                            <tr key={emp.employeeId} className="hover:bg-gray-50 transition-colors">
-                                <td className="py-4 px-6 text-gray-600">{index + 1}</td>
+                            <tr key={emp.employeeId} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-700">
+                                <td className="py-4 px-6 text-gray-600 dark:text-gray-400">{index + 1}</td>
                                 <td className="py-4 px-6">
-                                    <p className="font-medium text-gray-900">{emp.employeeName}</p>
+                                    <p className="font-medium text-gray-900 dark:text-white">{emp.employeeName}</p>
                                 </td>
                                 <td className="py-4 px-6">
                                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${emp.employeeType === 'fulltime'
-                                        ? 'bg-blue-100 text-blue-800'
-                                        : 'bg-purple-100 text-purple-800'
+                                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+                                        : 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'
                                         }`}>
                                         {getEmployeeTypeLabel(emp.employeeType as any)}
                                     </span>
                                 </td>
-                                <td className="py-4 px-6 text-right text-gray-900">
+                                <td className="py-4 px-6 text-right text-gray-900 dark:text-gray-200">
                                     {formatCurrency(emp.hourlyRate)}
                                 </td>
-                                <td className="py-4 px-6 text-right text-gray-900">{emp.completedShifts}</td>
-                                <td className="py-4 px-6 text-right text-gray-900">{emp.totalHours}h</td>
-                                <td className="py-4 px-6 text-right text-purple-600">
+                                <td className="py-4 px-6 text-right text-gray-900 dark:text-gray-200">{emp.completedShifts}</td>
+                                <td className="py-4 px-6 text-right text-gray-900 dark:text-gray-200">{emp.totalHours}h</td>
+                                <td className="py-4 px-6 text-right text-purple-600 dark:text-purple-400">
                                     {emp.nightShiftAllowance > 0 ? formatCurrency(emp.nightShiftAllowance) : '-'}
                                 </td>
-                                <td className="py-4 px-6 text-right font-bold text-orange-600">
+                                <td className="py-4 px-6 text-right font-bold text-orange-600 dark:text-orange-400">
                                     {formatCurrency(emp.totalSalary)}
                                 </td>
                             </tr>
                         ))}
                     </tbody>
-                    <tfoot className="bg-gray-50 border-t-2 border-gray-300">
+                    <tfoot className="bg-gray-50 dark:bg-gray-800/80 border-t-2 border-gray-300 dark:border-gray-600">
                         <tr>
-                            <td colSpan={4} className="py-4 px-6 font-bold text-gray-900">TỔNG CỘNG</td>
-                            <td className="py-4 px-6 text-right font-bold text-gray-900">
+                            <td colSpan={4} className="py-4 px-6 font-bold text-gray-900 dark:text-white">TỔNG CỘNG</td>
+                            <td className="py-4 px-6 text-right font-bold text-gray-900 dark:text-white">
                                 {currentPayroll.totalShifts}
                             </td>
-                            <td className="py-4 px-6 text-right font-bold text-gray-900">
+                            <td className="py-4 px-6 text-right font-bold text-gray-900 dark:text-white">
                                 {currentPayroll.totalHours}h
                             </td>
-                            <td className="py-4 px-6 text-right font-bold text-purple-600">
+                            <td className="py-4 px-6 text-right font-bold text-purple-600 dark:text-purple-400">
                                 {formatCurrency(currentPayroll.totalNightAllowance)}
                             </td>
-                            <td className="py-4 px-6 text-right font-bold text-orange-600">
+                            <td className="py-4 px-6 text-right font-bold text-orange-600 dark:text-orange-400">
                                 {formatCurrency(currentPayroll.totalSalary)}
                             </td>
                         </tr>

@@ -1,29 +1,22 @@
 'use client';
 
-import { useAdminStore } from '@/contexts/AdminStoreContext';
+import { useAuth } from '@/hooks/use-auth';
+import { useStore } from '@/contexts/StoreContext';
 import { useCollection } from '@/hooks/use-firestore';
 import { Store } from '@/types';
-import { Store as StoreIcon, ChevronDown } from 'lucide-react';
+import { Store as StoreIcon, ChevronDown, Layers } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 
 export function StoreSelector() {
-    const { selectedStoreId, setSelectedStoreId } = useAdminStore();
+    const { user } = useAuth();
+    const { selectedStoreId, setSelectedStoreId } = useStore();
     const { data: stores } = useCollection<Store>('stores');
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     const selectedStore = stores?.find(s => s.id === selectedStoreId);
 
-    // Close dropdown when clicking outside
-    useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        }
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    // ... useEffect ...
 
     return (
         <div className="relative" ref={dropdownRef}>
@@ -33,12 +26,16 @@ export function StoreSelector() {
             >
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                        <StoreIcon className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                        {selectedStoreId ? (
+                            <StoreIcon className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                        ) : (
+                            <Layers className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                        )}
                     </div>
                     <div className="text-left">
                         <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Cửa hàng đang quản lý</p>
                         <p className="text-sm font-bold text-gray-900 dark:text-white">
-                            {selectedStore ? selectedStore.name : 'Chọn cửa hàng'}
+                            {selectedStore ? selectedStore.name : 'Tất cả chi nhánh'}
                         </p>
                     </div>
                 </div>
@@ -47,6 +44,7 @@ export function StoreSelector() {
 
             {isOpen && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-50 max-h-80 overflow-y-auto">
+
                     {stores && stores.length > 0 ? (
                         stores.map((store) => (
                             <button

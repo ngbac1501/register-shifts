@@ -113,8 +113,8 @@ export default function AdminShiftsPage() {
     return (
         <div>
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Cấu hình ca làm việc</h1>
-                <p className="text-gray-600">Thiết lập các ca làm việc trong hệ thống</p>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Cấu hình ca làm việc</h1>
+                <p className="text-gray-600 dark:text-gray-400">Thiết lập các ca làm việc trong hệ thống</p>
             </div>
 
             {/* Search and Add */}
@@ -126,7 +126,7 @@ export default function AdminShiftsPage() {
                         placeholder="Tìm kiếm ca làm việc..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none dark:text-white"
                     />
                 </div>
                 <button
@@ -141,29 +141,29 @@ export default function AdminShiftsPage() {
             {/* Shifts Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {loading ? (
-                    <div className="col-span-full p-8 text-center text-gray-500">Đang tải...</div>
+                    <div className="col-span-full p-8 text-center text-gray-500 dark:text-gray-400">Đang tải...</div>
                 ) : filteredShifts.length === 0 ? (
-                    <div className="col-span-full p-8 text-center text-gray-500">
+                    <div className="col-span-full p-8 text-center text-gray-500 dark:text-gray-400">
                         {searchTerm ? 'Không tìm thấy ca làm việc nào' : 'Chưa có ca làm việc nào'}
                     </div>
                 ) : (
                     filteredShifts.map((shift) => (
                         <div
                             key={shift.id}
-                            className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow"
+                            className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 hover:shadow-lg transition-all border border-gray-100 dark:border-gray-700"
                         >
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex items-center gap-3">
-                                    <div className={`p-3 rounded-lg ${shift.type === 'fulltime' ? 'bg-blue-100' : 'bg-purple-100'
+                                    <div className={`p-3 rounded-lg ${shift.type === 'fulltime' ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-purple-100 dark:bg-purple-900/30'
                                         }`}>
-                                        <Clock className={`w-6 h-6 ${shift.type === 'fulltime' ? 'text-blue-600' : 'text-purple-600'
+                                        <Clock className={`w-6 h-6 ${shift.type === 'fulltime' ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'
                                             }`} />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-semibold text-gray-900">{shift.name}</h3>
+                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{shift.name}</h3>
                                         <span className={`text-xs px-2 py-1 rounded-full ${shift.type === 'fulltime'
-                                            ? 'bg-blue-100 text-blue-800'
-                                            : 'bg-purple-100 text-purple-800'
+                                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                                            : 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
                                             }`}>
                                             {getShiftTypeLabel(shift.type)}
                                         </span>
@@ -171,9 +171,9 @@ export default function AdminShiftsPage() {
                                 </div>
                                 <button
                                     onClick={() => handleToggleActive(shift)}
-                                    className={`px-3 py-1 rounded-full text-xs font-medium ${shift.isActive
-                                        ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                                        : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${shift.isActive
+                                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50'
+                                        : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                                         }`}
                                 >
                                     {shift.isActive ? 'Hoạt động' : 'Tạm dừng'}
@@ -182,30 +182,30 @@ export default function AdminShiftsPage() {
 
                             <div className="space-y-2 mb-4">
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-600">Giờ bắt đầu:</span>
-                                    <span className="font-medium text-gray-900">{shift.startTime}</span>
+                                    <span className="text-gray-600 dark:text-gray-400">Giờ bắt đầu:</span>
+                                    <span className="font-medium text-gray-900 dark:text-white">{shift.startTime}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-600">Giờ kết thúc:</span>
-                                    <span className="font-medium text-gray-900">{shift.endTime}</span>
+                                    <span className="text-gray-600 dark:text-gray-400">Giờ kết thúc:</span>
+                                    <span className="font-medium text-gray-900 dark:text-white">{shift.endTime}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-600">Thời lượng:</span>
-                                    <span className="font-medium text-gray-900">{shift.duration} giờ</span>
+                                    <span className="text-gray-600 dark:text-gray-400">Thời lượng:</span>
+                                    <span className="font-medium text-gray-900 dark:text-white">{shift.duration} giờ</span>
                                 </div>
                             </div>
 
-                            <div className="flex gap-2 pt-4 border-t border-gray-100">
+                            <div className="flex gap-2 pt-4 border-t border-gray-100 dark:border-gray-700">
                                 <button
                                     onClick={() => handleOpenModal(shift)}
-                                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                                 >
                                     <Edit className="w-4 h-4" />
                                     Sửa
                                 </button>
                                 <button
                                     onClick={() => handleDeleteClick(shift.id)}
-                                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                     Xóa

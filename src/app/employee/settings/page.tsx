@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useTheme } from 'next-themes';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Moon, Sun, Monitor, Save, User, Phone, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Moon, Sun, Monitor, Save, User, Phone, Image as ImageIcon, Loader2, LogOut } from 'lucide-react';
 import ChangePasswordForm from '@/components/shared/ChangePasswordForm';
 
 export default function EmployeeSettingsPage() {
@@ -270,6 +270,20 @@ export default function EmployeeSettingsPage() {
 
             {/* Change Password */}
             <ChangePasswordForm />
+
+            <div className="pt-4 pb-8">
+                <button
+                    onClick={async () => {
+                        const { signOut } = await import('@/lib/firebase/auth');
+                        await signOut();
+                        window.location.href = '/login';
+                    }}
+                    className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 rounded-xl transition-all font-medium"
+                >
+                    <LogOut className="w-5 h-5" />
+                    Đăng xuất khỏi tài khoản
+                </button>
+            </div>
         </div>
     );
 }

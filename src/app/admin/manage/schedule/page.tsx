@@ -1,6 +1,6 @@
 'use client';
 
-import { useAdminStore } from '@/contexts/AdminStoreContext';
+import { useStore } from '@/contexts/StoreContext';
 import { StoreSelector } from '@/components/admin/StoreSelector';
 import { useCollection } from '@/hooks/use-firestore';
 import { Schedule, Shift, User } from '@/types';
@@ -16,7 +16,7 @@ import { DeleteConfirmationModal } from '@/components/shared/DeleteConfirmationM
 import { AssignShiftModal } from '@/app/manager/schedule/AssignShiftModal';
 
 export default function AdminSchedulePage() {
-    const { selectedStoreId } = useAdminStore();
+    const { selectedStoreId } = useStore();
     const [currentWeek, setCurrentWeek] = useState(new Date());
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
