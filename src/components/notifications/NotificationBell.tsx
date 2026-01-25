@@ -7,7 +7,13 @@ import { useNotifications } from '@/hooks/use-notifications';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
-export function NotificationBell() {
+export function NotificationBell({
+    align = 'right',
+    direction = 'down'
+}: {
+    align?: 'left' | 'right';
+    direction?: 'up' | 'down';
+}) {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -86,7 +92,13 @@ export function NotificationBell() {
 
             {/* Dropdown */}
             {isOpen && (
-                <div className="fixed lg:absolute left-4 right-4 lg:left-auto lg:right-0 mt-2 lg:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 animate-fadeIn overflow-hidden">
+                <div className={`
+                    fixed lg:absolute left-4 right-4 z-50 animate-fadeIn overflow-hidden
+                    bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700
+                    ${direction === 'up' ? 'bottom-full lg:mb-2 lg:mt-0' : 'top-full lg:mt-2 lg:mb-0'}
+                    ${align === 'left' ? 'lg:left-0 lg:right-auto' : 'lg:right-0 lg:left-auto'}
+                    lg:w-[400px]
+                `}>
                     {/* Header */}
                     <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
                         <h3 className="text-lg font-bold text-gray-900 dark:text-white">

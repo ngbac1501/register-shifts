@@ -183,7 +183,7 @@ export default function ManagerLayout({ children }: { children: React.ReactNode 
                 <div className="p-4 border-t border-gray-100 dark:border-gray-800 space-y-4 lg:block hidden">
                     <div className="flex items-center justify-between px-2">
                         <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Thông báo</span>
-                        <NotificationBell />
+                        <NotificationBell align="left" direction="up" />
                     </div>
                     <div className="flex items-center gap-3 mb-2 px-2">
                         <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">

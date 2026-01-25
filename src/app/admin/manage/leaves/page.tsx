@@ -8,12 +8,12 @@ import {
     getLeaveStatusLabel,
     getLeaveStatusColor
 } from '@/lib/leave-service';
-import { Calendar, Search, Filter, CheckCircle, XCircle, Clock, Loader2, Check, X } from 'lucide-react';
+import { Calendar, Search, Filter, CheckCircle, XCircle, Clock, Loader2, Check, X, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { useAuth } from '@/hooks/use-auth';
 import { useStore } from '@/contexts/StoreContext';
-import { approveLeave, rejectLeave, updateLeaveStatus } from '@/lib/leave-service';
+import { approveLeave, rejectLeave, updateLeaveStatus, deleteLeave } from '@/lib/leave-service';
 import toast from 'react-hot-toast';
 import { Pencil } from 'lucide-react';
 import { useEffect } from 'react';
@@ -123,6 +123,18 @@ export default function AdminLeavesPage() {
         setEditReason(leave.rejectedReason || '');
     };
 
+    const handleDeleteClick = async (leaveId: string) => {
+        if (window.confirm('Bạn có chắc chắn muốn xoá đơn nghỉ phép này?')) {
+            try {
+                await deleteLeave(leaveId);
+                toast.success('Đã xoá đơn nghỉ phép');
+            } catch (error) {
+                console.error('Error deleting leave:', error);
+                toast.error('Có lỗi xảy ra khi xoá đơn');
+            }
+        }
+    };
+
     const pendingCount = leaves?.filter(l => l.status === 'pending').length || 0;
     const approvedCount = leaves?.filter(l => l.status === 'approved').length || 0;
 
@@ -206,132 +218,182 @@ export default function AdminLeavesPage() {
                             <option value="pending">Chờ duyệt</option>
                             <option value="approved">Đã duyệt</option>
                             <option value="rejected">Từ chối</option>
+                            <option value="cancelled">Đã hủy</option>
                         </select>
                     </div>
                 </div>
             </div>
 
-            {/* Leaves Table */}
+            {/* Leaves View */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                <div className="overflow-x-auto">
-                    {loading ? (
-                        <div className="p-8 text-center text-gray-500">
-                            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
-                            <p>Đang tải...</p>
-                        </div>
-                    ) : sortedLeaves.length === 0 ? (
-                        <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-                            <Calendar className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                            <p>Không có đơn nghỉ phép nào</p>
-                        </div>
-                    ) : (
-                        <table className="w-full">
-                            <thead className="bg-gray-50 dark:bg-gray-700/50">
-                                <tr>
-                                    <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">Cửa hàng</th>
-                                    <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">Nhân viên</th>
-                                    <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">Loại</th>
-                                    <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">Từ ngày</th>
-                                    <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">Đến ngày</th>
-                                    <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">Số ngày</th>
-                                    <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">Lý do</th>
-                                    <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">Trạng thái</th>
-                                    <th className="text-right py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {sortedLeaves.map((leave) => {
-                                    const employee = employeeMap.get(leave.employeeId);
-                                    const store = storeMap.get(leave.storeId);
-                                    return (
-                                        <tr key={leave.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                                            <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
-                                                {store?.name || 'Unknown'}
-                                            </td>
-                                            <td className="py-3 px-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold">
-                                                        {employee?.displayName.charAt(0) || '?'}
-                                                    </div>
+                {loading ? (
+                    <div className="p-8 text-center text-gray-500">
+                        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+                        <p>Đang tải...</p>
+                    </div>
+                ) : sortedLeaves.length === 0 ? (
+                    <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                        <Calendar className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                        <p>Không có đơn nghỉ phép nào</p>
+                    </div>
+                ) : (
+                    <>
+                        {/* Desktop Table */}
+                        <div className="hidden lg:block overflow-x-auto">
+                            <table className="w-full">
+                                <thead className="bg-gray-50 dark:bg-gray-700/50">
+                                    <tr>
+                                        <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">Cửa hàng</th>
+                                        <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">Nhân viên</th>
+                                        <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">Loại</th>
+                                        <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">Thời gian</th>
+                                        <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">Số ngày</th>
+                                        <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">Lý do</th>
+                                        <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">Trạng thái</th>
+                                        <th className="text-right py-3 px-4 text-gray-600 dark:text-gray-300 font-medium">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {sortedLeaves.map((leave) => {
+                                        const employee = employeeMap.get(leave.employeeId);
+                                        const store = storeMap.get(leave.storeId);
+                                        return (
+                                            <tr key={leave.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                                                <td className="py-3 px-4">
                                                     <span className="font-medium text-gray-900 dark:text-white">
-                                                        {employee?.displayName || 'Unknown'}
+                                                        {store?.name || 'Unknown Store'}
                                                     </span>
-                                                </div>
-                                            </td>
-                                            <td className="py-3 px-4">
-                                                <span className="font-medium text-gray-900 dark:text-white">
-                                                    {getLeaveTypeLabel(leave.type)}
-                                                </span>
-                                            </td>
-                                            <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
-                                                {format(
-                                                    leave.startDate instanceof Date
-                                                        ? leave.startDate
-                                                        : (leave.startDate as any).toDate?.() || new Date(),
-                                                    'dd/MM/yyyy',
-                                                    { locale: vi }
-                                                )}
-                                            </td>
-                                            <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
-                                                {format(
-                                                    leave.endDate instanceof Date
-                                                        ? leave.endDate
-                                                        : (leave.endDate as any).toDate?.() || new Date(),
-                                                    'dd/MM/yyyy',
-                                                    { locale: vi }
-                                                )}
-                                            </td>
-                                            <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
-                                                {leave.totalDays} ngày
-                                            </td>
-                                            <td className="py-3 px-4 text-gray-600 dark:text-gray-400 max-w-xs truncate" title={leave.reason}>
-                                                {leave.reason}
-                                            </td>
-                                            <td className="py-3 px-4">
-                                                <div className="flex items-center gap-2">
-                                                    {getStatusIcon(leave.status)}
-                                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getLeaveStatusColor(leave.status)}`}>
-                                                        {getLeaveStatusLabel(leave.status)}
+                                                </td>
+                                                <td className="py-3 px-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-[10px] font-bold">
+                                                            {employee?.displayName.charAt(0) || '?'}
+                                                        </div>
+                                                        <span className="text-gray-900 dark:text-white">
+                                                            {employee?.displayName || 'Unknown'}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="py-3 px-4">
+                                                    <span className="text-gray-900 dark:text-white text-sm">
+                                                        {getLeaveTypeLabel(leave.type)}
                                                     </span>
-                                                </div>
-                                            </td>
-                                            <td className="py-3 px-4 text-right">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    {leave.status === 'pending' ? (
-                                                        <>
-                                                            <button
-                                                                onClick={() => handleApprove(leave.id)}
-                                                                className="p-2 bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50 rounded-full transition-colors"
-                                                                title="Duyệt"
-                                                            >
-                                                                <Check className="w-5 h-5" />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => setRejectingLeaveId(leave.id)}
-                                                                className="p-2 bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 rounded-full transition-colors"
-                                                                title="Từ chối"
-                                                            >
-                                                                <X className="w-5 h-5" />
-                                                            </button>
-                                                        </>
-                                                    ) : (
+                                                </td>
+                                                <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
+                                                    <div className="flex flex-col">
+                                                        <span>{format(leave.startDate instanceof Date ? leave.startDate : (leave.startDate as any).toDate(), 'dd/MM/yyyy')}</span>
+                                                        <span className="text-[10px]">đến {format(leave.endDate instanceof Date ? leave.endDate : (leave.endDate as any).toDate(), 'dd/MM/yyyy')}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
+                                                    {leave.totalDays} ngày
+                                                </td>
+                                                <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400 max-w-[150px] truncate" title={leave.reason}>
+                                                    {leave.reason}
+                                                </td>
+                                                <td className="py-3 px-4">
+                                                    <div className="flex items-center gap-2">
+                                                        {getStatusIcon(leave.status)}
+                                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${getLeaveStatusColor(leave.status)}`}>
+                                                            {getLeaveStatusLabel(leave.status)}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="py-3 px-4 text-right">
+                                                    <div className="flex items-center justify-end gap-2">
                                                         <button
                                                             onClick={() => openEditModal(leave)}
-                                                            className="p-2 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-full transition-colors"
+                                                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                                             title="Chỉnh sửa trạng thái"
                                                         >
                                                             <Pencil className="w-4 h-4" />
                                                         </button>
-                                                    )}
+                                                        <button
+                                                            onClick={() => handleDeleteClick(leave.id)}
+                                                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                            title="Xoá đơn"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Mobile Cards */}
+                        <div className="lg:hidden p-4 space-y-4">
+                            {sortedLeaves.map((leave) => {
+                                const employee = employeeMap.get(leave.employeeId);
+                                const store = storeMap.get(leave.storeId);
+                                const startDate = leave.startDate instanceof Date ? leave.startDate : (leave.startDate as any).toDate?.() || new Date();
+                                const endDate = leave.endDate instanceof Date ? leave.endDate : (leave.endDate as any).toDate?.() || new Date();
+
+                                return (
+                                    <div key={leave.id} className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700 shadow-sm space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">{store?.name || 'Unknown Store'}</span>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
+                                                        {employee?.displayName.charAt(0) || '?'}
+                                                    </div>
+                                                    <span className="font-bold text-gray-900 dark:text-white">{employee?.displayName || 'Unknown'}</span>
                                                 </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    )}
-                </div>
+                                            </div>
+                                            <div className="flex shrink-0 items-center gap-2">
+                                                {getStatusIcon(leave.status)}
+                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${getLeaveStatusColor(leave.status)}`}>
+                                                    {getLeaveStatusLabel(leave.status)}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 space-y-2">
+                                            <div className="flex justify-between items-center">
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">Loại nghỉ:</p>
+                                                <p className="text-xs font-bold dark:text-white">{getLeaveTypeLabel(leave.type)}</p>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">Thời gian:</p>
+                                                <p className="text-xs font-bold dark:text-white">
+                                                    {format(startDate, 'dd/MM/yyyy')} - {format(endDate, 'dd/MM/yyyy')}
+                                                </p>
+                                            </div>
+                                            <div className="pt-2 border-t border-gray-100 dark:border-gray-600">
+                                                <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold mb-1">Lý do</p>
+                                                <p className="text-xs dark:text-gray-200 line-clamp-2 italic">"{leave.reason}"</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-bold text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-lg">
+                                                Tổng: {leave.totalDays} ngày
+                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => openEditModal(leave)}
+                                                    className="flex items-center gap-1.5 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20"
+                                                >
+                                                    <Pencil className="w-3.5 h-3.5" /> Sửa
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteClick(leave.id)}
+                                                    className="p-2.5 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </>
+                )}
             </div>
 
             {/* Reject Modal */}

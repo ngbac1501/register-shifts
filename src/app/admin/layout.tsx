@@ -115,7 +115,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <div className="max-h-full flex flex-col">
                     {/* Sidebar Header */}
                     <div className="p-6 border-b border-gray-100 dark:border-gray-700 h-32 flex items-center justify-center shrink-0">
-                        <Image src="/logoEpatta.png" alt="Epatta" width={180} height={100} className="h-[100px] w-auto object-contain" />
+                        <Image src="/logoEpatta.png" alt="Epatta" width={180} height={100} className="h-[100px] w-auto object-contain" style={{ width: 'auto' }} />
                     </div>
 
                     {/* Store Selector */}
@@ -226,7 +226,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <div className="p-4 border-t border-gray-100 dark:border-gray-700 space-y-4 shrink-0 lg:block hidden">
                         <div className="flex items-center justify-between px-2">
                             <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Thông báo</span>
-                            <NotificationBell />
+                            <NotificationBell align="left" direction="up" />
                         </div>
                         <div className="flex items-center gap-3 mb-2 px-2">
                             <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400 font-bold border border-orange-200 dark:border-orange-800">

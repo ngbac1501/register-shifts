@@ -119,7 +119,7 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
                 <div className="p-4 border-t border-gray-100 dark:border-gray-700 space-y-4">
                     <div className="flex items-center justify-between px-2">
                         <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Thông báo</span>
-                        <NotificationBell />
+                        <NotificationBell align="left" direction="up" />
                     </div>
                     <div className="flex items-center gap-3 mb-2 px-2">
                         <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
@@ -155,7 +155,7 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
                     <span className="font-bold text-lg text-gray-900 dark:text-white">Epatta</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <NotificationBell />
+                    <NotificationBell align="right" direction="down" />
                     <button
                         onClick={async () => {
                             const { signOut } = await import('@/lib/firebase/auth');
